@@ -284,3 +284,302 @@ button {
   margin: 0 auto;
   padding: 16px;
 }
+/* MOBILE CONTAINER */
+.container {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+/* LIGHT MODE FIX */
+:root {
+  --bg-light: #f7f7f7;
+  --text-light: #222;
+  --card-light: #ffffff;
+  --button-light: #e0e0e0;
+}
+
+/* DARK MODE (μένει όπως είναι) */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-light: #0A2A43;
+    --text-light: #ffffff;
+    --card-light: #123456;
+    --button-light: #1f3b5a;
+  }
+}
+
+/* BODY */
+body {
+  background: var(--bg-light);
+  color: var(--text-light);
+  font-family: sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+/* INPUTS */
+input, select {
+  width: 100%;
+  padding: 10px;
+  font-size: 15px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  background: var(--card-light);
+  color: var(--text-light);
+  border: 1px solid #ccc;
+}
+
+/* BUTTONS */
+button {
+  width: 100%;
+  padding: 12px;
+  font-size: 15px;
+  border-radius: 8px;
+  margin-top: 8px;
+  background: var(--button-light);
+  color: var(--text-light);
+  border: none;
+}
+
+/* SHOPPING LIST ITEMS */
+.item {
+  background: var(--card-light);
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* ITEM BUTTONS */
+.item button {
+  padding: 6px 10px;
+  font-size: 14px;
+  margin-left: 6px;
+  width: auto;
+}
+/* MOBILE CONTAINER */
+.container {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+/* LIGHT MODE */
+:root {
+  --bg: #f9f9f9;
+  --text: #222;
+  --card: #ffffff;
+  --button: #e6e6e6;
+  --header-bg: #ffffff;
+  --header-text: #222;
+  --gotit: #2ecc71;
+}
+
+/* DARK MODE */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0A2A43;
+    --text: #ffffff;
+    --card: #123456;
+    --button: #1f3b5a;
+    --header-bg: #0A2A43;
+    --header-text: #ffffff;
+    --gotit: #27ae60;
+  }
+}
+
+/* BODY */
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+/* HEADER */
+header {
+  background: var(--header-bg);
+  color: var(--header-text);
+  padding: 16px;
+  font-size: 20px;
+  font-weight: bold;
+  text-align: center;
+  border-bottom: 1px solid #ddd;
+}
+
+/* INPUTS */
+input, select {
+  width: 100%;
+  padding: 10px;
+  font-size: 15px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  background: var(--card);
+  color: var(--text);
+  border: 1px solid #ccc;
+}
+
+/* BUTTONS */
+button {
+  width: 100%;
+  padding: 12px;
+  font-size: 15px;
+  border-radius: 8px;
+  margin-top: 8px;
+  background: var(--button);
+  color: var(--text);
+  border: none;
+}
+
+/* SHOPPING LIST ITEMS */
+.item {
+  background: var(--card);
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* ITEM LEFT SIDE WITH ICON */
+.item-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.item-left .icon {
+  width: 22px;
+  height: 22px;
+  background: var(--button);
+  border-radius: 6px;
+}
+
+/* ITEM BUTTONS */
+.item button {
+  padding: 6px 10px;
+  font-size: 14px;
+  margin-left: 6px;
+  width: auto;
+}
+
+/* GOT IT BUTTON */
+.item .gotit {
+  background: var(--gotit);
+  color: white;
+}
+/* ITEM CARD */
+.card {
+  border-radius: 12px !important;
+  padding: 14px !important;
+  background: var(--card-light);
+}
+
+/* ITEM LEFT SIDE */
+.card .flex.flex-col {
+  gap: 4px;
+}
+
+/* ITEM NAME */
+.card .text-sm {
+  font-size: 15px !important;
+  font-weight: 600 !important;
+}
+
+/* STORE LABEL */
+.store-label {
+  opacity: 0.7;
+}
+
+/* BUTTONS SMALLER */
+.card button {
+  padding: 6px 10px !important;
+  font-size: 13px !important;
+  border-radius: 6px !important;
+}
+
+/* GOT IT BUTTON */
+.btn-green {
+  background: #2ecc71 !important;
+  color: white !important;
+}
+
+/* EDIT BUTTON */
+.btn-primary {
+  background: #3498db !important;
+  color: white !important;
+}
+
+/* DELETE BUTTON */
+.btn-danger {
+  background: #e74c3c !important;
+  color: white !important;
+}
+
+/* LIGHT MODE FIX */
+body:not(.dark) {
+  background: #f9f9f9 !important;
+  color: #222 !important;
+}
+
+body:not(.dark) .card {
+  background: #ffffff !important;
+  border: 1px solid #ddd !important;
+}
+
+body:not(.dark) .input,
+body:not(.dark) input,
+body:not(.dark) select {
+  background: #ffffff !important;
+  color: #222 !important;
+  border: 1px solid #ccc !important;
+}
+
+body:not(.dark) .btn,
+body:not(.dark) button {
+  background: #e6e6e6 !important;
+  color: #222 !important;
+}
+/* REAL LIGHT MODE FIX — OVERRIDES TAILWIND */
+body:not(.dark) {
+  background-color: #f9f9f9 !important;
+  color: #222 !important;
+}
+
+/* LIGHT MODE CARDS */
+body:not(.dark) .card {
+  background-color: #ffffff !important;
+  border: 1px solid #ddd !important;
+}
+
+/* LIGHT MODE INPUTS */
+body:not(.dark) input,
+body:not(.dark) select,
+body:not(.dark) .input {
+  background-color: #ffffff !important;
+  color: #222 !important;
+  border: 1px solid #ccc !important;
+}
+
+/* LIGHT MODE BUTTONS */
+body:not(.dark) button,
+body:not(.dark) .btn {
+  background-color: #e6e6e6 !important;
+  color: #222 !important;
+}
+
+/* LIGHT MODE ITEM CARD */
+body:not(.dark) li.card {
+  background-color: #ffffff !important;
+  border: 1px solid #ddd !important;
+}
+
+/* LIGHT MODE STORE LABEL */
+body:not(.dark) .store-label {
+  color: #555 !important;
+}
