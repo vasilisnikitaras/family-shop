@@ -1,0 +1,12 @@
+{
+  "title": "Lista della Spesa Familiare",
+  "new_store": "Nome del nuovo negozio...",
+  "add_store": "Aggiungi Negozio",
+  "add_product": "Aggiungi prodotto...",
+  "quantity": "Quantità",
+  "select_store": "Seleziona negozio",
+  "add": "Aggiungi",
+  "got_it": "Preso",
+  "delete": "Elimina",
+  "edit": "Modifica"
+}

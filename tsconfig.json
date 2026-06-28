@@ -29,6 +29,6 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
     "**/*.mts"
-  ],
+, "app/api/addStore/route.ts", "app/api/deleteItem/route.ts", "app/api/deleteStore/route.ts", "app/api/addItem/route.ts"  ],
   "exclude": ["node_modules"]
 }

@@ -1,0 +1,343 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ---------------- GLOBAL ---------------- */
+:root {
+  --bg-dark: #121212;
+  --text-dark: #e5e5e5;
+  --input-dark: #1e1e1e;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: sans-serif;
+  background-color: #f3f4f6;
+  color: #111;
+}
+
+.dark body {
+  background-color: var(--bg-dark) !important;
+  color: var(--text-dark) !important;
+}
+
+/* ---------------- CARDS ---------------- */
+.card {
+  background-color: white;
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid #e5e7eb;
+}
+
+.dark .card {
+  background-color: #1e1e24;
+  border-color: #3a3a40;
+}
+
+/* ---------------- BUTTONS ---------------- */
+.btn {
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background-color: #2563eb;
+  color: white;
+}
+
+.btn-danger {
+  background-color: #dc2626;
+  color: white;
+}
+
+.btn-green {
+  background-color: #16a34a;
+  color: white;
+}
+
+.btn-purple {
+  background-color: #7c3aed;
+  color: white;
+}
+
+.btn-light-purple {
+  background-color: #ede9fe;
+  color: #7c3aed;
+}
+
+/* ---------------- INPUTS ---------------- */
+.input {
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  width: 100%;
+  background-color: white;
+}
+
+.dark .input {
+  background-color: var(--input-dark);
+  color: var(--text-dark);
+  border-color: #3a3a40;
+}
+
+/* ---------------- SELECT ---------------- */
+.select {
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  background-color: white;
+}
+
+.dark .select {
+  background-color: var(--input-dark);
+  color: var(--text-dark);
+  border-color: #3a3a40;
+}
+
+/* ---------------- TITLES ---------------- */
+.section-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+/* ---------------- MODAL ---------------- */
+.modal-bg {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+
+.modal-box {
+  background-color: white;
+  padding: 20px;
+  border-radius: 14px;
+  width: 320px;
+}
+
+.dark .modal-box {
+  background-color: #1e1e24;
+  color: var(--text-dark);
+}
+/* ===== DARK MODE FIX ===== */
+
+.dark {
+  background-color: #0f172a !important; /* slate-900 */
+  color: #f1f5f9 !important; /* slate-100 */
+}
+
+/* Inputs */
+.dark input,
+.dark select,
+.dark textarea {
+  background-color: #1e293b !important; /* slate-800 */
+  color: #f8fafc !important; /* slate-50 */
+  border-color: #334155 !important; /* slate-700 */
+}
+
+/* Placeholder */
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #94a3b8 !important; /* slate-400 */
+}
+
+/* Cards */
+.dark .card,
+.dark .bg-white {
+  background-color: #1e293b !important; /* slate-800 */
+  color: #f1f5f9 !important;
+}
+
+/* Buttons */
+.dark button {
+  color: white !important;
+}
+
+/* Dropdown options */
+.dark select option {
+  background-color: #1e293b !important;
+  color: #f1f5f9 !important;
+}
+/* ============================
+   DARK MODE – FULL FIX
+   ============================ */
+
+.dark {
+  background-color: #0f172a !important; /* slate-900 */
+  color: #f1f5f9 !important; /* slate-100 */
+}
+
+/* Cards & containers */
+.dark .bg-white,
+.dark .card {
+  background-color: #1e293b !important; /* slate-800 */
+  color: #f1f5f9 !important;
+}
+
+/* Inputs */
+.dark input,
+.dark select,
+.dark textarea {
+  background-color: #1e293b !important; /* slate-800 */
+  color: #f8fafc !important; /* slate-50 */
+  border-color: #334155 !important; /* slate-700 */
+}
+
+/* Placeholder text */
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #94a3b8 !important; /* slate-400 */
+}
+
+/* Dropdown options */
+.dark select option {
+  background-color: #1e293b !important;
+  color: #f1f5f9 !important;
+}
+
+/* Buttons */
+.dark button {
+  color: white !important;
+}
+
+/* List items */
+.dark li {
+  background-color: #1e293b !important;
+  color: #f1f5f9 !important;
+}
+
+/* Store name text */
+.dark .store-label {
+  color: #c084fc !important; /* purple-300 */
+}
+
+/* Borders */
+.dark .border {
+  border-color: #334155 !important; /* slate-700 */
+}
+/* ===========================================
+   SUPER BRIGHT DARK MODE (FINAL VERSION)
+   =========================================== */
+
+.dark {
+  background-color: #1e293b !important; /* slate-800 */
+  color: #ffffff !important; /* pure white */
+}
+
+/* Cards & containers */
+.dark .bg-white,
+.dark .card,
+.dark li {
+  background-color: #2f3e55 !important; /* brighter slate */
+  color: #ffffff !important;
+  border: 1px solid #475569 !important; /* slate-600 */
+}
+
+/* Inputs */
+.dark input,
+.dark select,
+.dark textarea {
+  background-color: #3b4a63 !important; /* bright slate */
+  color: #ffffff !important;
+  border-color: #64748b !important; /* slate-500 */
+}
+
+/* Placeholder text */
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #e2e8f0 !important; /* slate-200 */
+}
+
+/* Dropdown options */
+.dark select option {
+  background-color: #3b4a63 !important;
+  color: #ffffff !important;
+}
+
+/* Buttons */
+.dark button {
+  color: white !important;
+}
+
+/* Store name text */
+.dark .store-label,
+.dark span.text-purple-600,
+.dark span.text-purple-300 {
+  color: #e9d5ff !important; /* bright purple */
+}
+
+/* Borders */
+.dark .border {
+  border-color: #64748b !important; /* slate-500 */
+}
+
+.dark input[type="number"]::-webkit-inner-spin-button,
+.dark input[type="number"]::-webkit-outer-spin-button {
+  filter: invert(1);
+}
+/* Make number input arrows visible in dark mode */
+.dark input[type="number"]::-webkit-inner-spin-button,
+.dark input[type="number"]::-webkit-outer-spin-button {
+  filter: invert(1);
+  opacity: 1 !important;
+}
+
+/* Fix for Firefox */
+.dark input[type="number"] {
+  color-scheme: light;
+}
+/* Fix number input arrows visibility */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  opacity: 1 !important;
+  filter: invert(0.8);
+}
+
+/* Dark mode fix */
+.dark input[type="number"]::-webkit-inner-spin-button,
+.dark input[type="number"]::-webkit-outer-spin-button {
+  filter: invert(1);
+}
+
+/* Make number input same height as select */
+.input-number-fix {
+  height: 42px !important;
+  padding-left: 12px !important;
+  padding-right: 12px !important;
+}
+/* Fix number input visibility in light & dark mode */
+.input-number-fix {
+  height: 42px !important;
+  padding-left: 12px !important;
+  padding-right: 12px !important;
+  background-color: var(--fallback-b1, #ffffff) !important;
+  border: 1px solid #d1d5db !important;
+  border-radius: 8px !important;
+  color: #111 !important;
+}
+
+/* Dark mode version */
+.dark .input-number-fix {
+  background-color: #1f2937 !important;
+  border: 1px solid #4b5563 !important;
+  color: #f3f4f6 !important;
+}
+
+/* Make arrows visible */
+.input-number-fix::-webkit-inner-spin-button,
+.input-number-fix::-webkit-outer-spin-button {
+  opacity: 1 !important;
+  filter: invert(0.8);
+}
+
+.dark .input-number-fix::-webkit-inner-spin-button,
+.dark .input-number-fix::-webkit-outer-spin-button {
+  filter: invert(1);
+}

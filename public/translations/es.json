@@ -1,0 +1,12 @@
+{
+  "title": "Lista de Compras Familiar",
+  "new_store": "Nombre de nueva tienda...",
+  "add_store": "Agregar Tienda",
+  "add_product": "Agregar producto...",
+  "quantity": "Cantidad",
+  "select_store": "Seleccionar tienda",
+  "add": "Agregar",
+  "got_it": "Listo",
+  "delete": "Eliminar",
+  "edit": "Editar"
+}

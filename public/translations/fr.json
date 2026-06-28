@@ -1,0 +1,12 @@
+{
+  "title": "Liste de Courses Familiale",
+  "new_store": "Nom du nouveau magasin...",
+  "add_store": "Ajouter un Magasin",
+  "add_product": "Ajouter un produit...",
+  "quantity": "Quantité",
+  "select_store": "Choisir un magasin",
+  "add": "Ajouter",
+  "got_it": "Pris",
+  "delete": "Supprimer",
+  "edit": "Modifier"
+}

@@ -1,0 +1,12 @@
+{
+  "title": "Perheen Ostoslista",
+  "new_store": "Uuden kaupan nimi...",
+  "add_store": "Lisää Kauppa",
+  "add_product": "Lisää tuote...",
+  "quantity": "Määrä",
+  "select_store": "Valitse kauppa",
+  "add": "Lisää",
+  "got_it": "Valmis",
+  "delete": "Poista",
+  "edit": "Muokkaa"
+}
