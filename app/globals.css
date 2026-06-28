@@ -583,3 +583,201 @@ body:not(.dark) li.card {
 body:not(.dark) .store-label {
   color: #555 !important;
 }
+/* FINAL LIGHT MODE FIX */
+body:not(.dark) {
+  background: #fafafa !important;
+  color: #222 !important;
+}
+
+/* CARDS */
+body:not(.dark) .card {
+  background: #ffffff !important;
+  border: 1px solid #e5e5e5 !important;
+}
+
+/* INPUTS */
+body:not(.dark) input,
+body:not(.dark) select,
+body:not(.dark) .input {
+  background: #ffffff !important;
+  color: #222 !important;
+  border: 1px solid #ccc !important;
+}
+
+/* BUTTONS */
+body:not(.dark) button,
+body:not(.dark) .btn {
+  background: #eaeaea !important;
+  color: #222 !important;
+}
+
+/* ITEM CARD */
+body:not(.dark) li.card {
+  background: #ffffff !important;
+  border: 1px solid #ddd !important;
+}
+select {
+  min-width: 70px !important;
+  padding: 6px 8px !important;
+  font-size: 14px !important;
+}
+/* ============================
+   GLOBAL PREMIUM UI RESET
+   ============================ */
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: sans-serif;
+}
+
+/* ============================
+   LIGHT MODE (REAL FIX)
+   ============================ */
+
+body:not(.dark) {
+  background: #fafafa !important;
+  color: #222 !important;
+}
+
+body:not(.dark) .card {
+  background: #ffffff !important;
+  border: 1px solid #e5e5e5 !important;
+}
+
+body:not(.dark) input,
+body:not(.dark) select,
+body:not(.dark) .input {
+  background: #ffffff !important;
+  color: #222 !important;
+  border: 1px solid #ccc !important;
+}
+
+body:not(.dark) button,
+body:not(.dark) .btn {
+  background: #eaeaea !important;
+  color: #222 !important;
+}
+
+body:not(.dark) li.card {
+  background: #ffffff !important;
+  border: 1px solid #ddd !important;
+}
+
+body:not(.dark) .store-label {
+  color: #555 !important;
+}
+
+/* ============================
+   DARK MODE (ΜΕΝΕΙ ΩΡΑΙΟ)
+   ============================ */
+
+body.dark {
+  background: #0A2A43 !important;
+  color: #fff !important;
+}
+
+body.dark .card {
+  background: #123456 !important;
+  border: 1px solid #1f3b5a !important;
+}
+
+body.dark input,
+body.dark select,
+body.dark .input {
+  background: #1f3b5a !important;
+  color: #fff !important;
+  border: 1px solid #345 !important;
+}
+
+body.dark button,
+body.dark .btn {
+  background: #1f3b5a !important;
+  color: #fff !important;
+}
+
+/* ============================
+   HEADER
+   ============================ */
+
+header,
+.section-title {
+  font-weight: bold;
+}
+
+/* ============================
+   SELECT LANG FIX
+   ============================ */
+
+select {
+  min-width: 80px !important;
+  padding: 6px 8px !important;
+  font-size: 14px !important;
+  border-radius: 8px !important;
+}
+
+/* ============================
+   ADD PRODUCT GRID FIX
+   ============================ */
+
+.grid.grid-cols-3 {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 8px !important;
+  align-items: center !important;
+}
+
+.input-qty {
+  width: 100% !important;
+  padding: 10px !important;
+  border-radius: 8px !important;
+  border: 1px solid #ccc !important;
+}
+
+/* ============================
+   ITEM CARD PREMIUM
+   ============================ */
+
+li.card {
+  border-radius: 12px !important;
+  padding: 14px !important;
+  transition: all 0.2s ease !important;
+}
+
+li.card .text-sm {
+  font-size: 15px !important;
+  font-weight: 600 !important;
+}
+
+.store-label {
+  opacity: 0.7;
+}
+
+/* ============================
+   BUTTONS SMALLER
+   ============================ */
+
+li.card button {
+  padding: 6px 10px !important;
+  font-size: 13px !important;
+  border-radius: 6px !important;
+}
+
+/* ============================
+   BUTTON COLORS
+   ============================ */
+
+.btn-green {
+  background: #2ecc71 !important;
+  color: white !important;
+}
+
+.btn-primary {
+  background: #3498db !important;
+  color: white !important;
+}
+
+.btn-danger {
+  background: #e74c3c !important;
+  color: white !important;
+}
