@@ -1,22 +1,19 @@
-const CACHE_NAME = "family-shop-cache-v1";
+const CACHE_NAME = "family-shop-lemon-cache-v1";
 const ASSETS = [
-  "/", 
+  "/",
   "/manifest.json",
   "/icons/icon-192.png",
-  "/icons/icon-512.png"
+  "/icons/icon-512.png",
+  "/splash.png"
 ];
 
-// Install
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS);
-    })
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
   );
   self.skipWaiting();
 });
 
-// Activate
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
@@ -30,8 +27,12 @@ self.addEventListener("activate", (event) => {
   self.clients.claim();
 });
 
-// Fetch (offline fallback)
 self.addEventListener("fetch", (event) => {
+  // ΜΗΝ κάνεις cache τα API (login, products κλπ)
+  if (event.request.url.includes("/api/")) {
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request).then((cached) => {
       return (

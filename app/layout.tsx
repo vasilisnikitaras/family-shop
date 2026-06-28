@@ -16,21 +16,19 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <head>
-        {/* PWA Splash Screen for iPhone */}
+        {/* PWA manifest */}
+        <link rel="manifest" href="/manifest.json" />
+
+        {/* iPhone splash */}
         <link rel="apple-touch-startup-image" href="/splash.png" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-
-        {/* Manifest */}
-        <link rel="manifest" href="/manifest.json" />
       </head>
 
-      <body id="app-body">
-        <div className="app-container">
-          {children}
-        </div>
+      <body>
+        {children}
 
-        {/* Service Worker Registration */}
+        {/* Service worker registration */}
         <script
           dangerouslySetInnerHTML={{
             __html: `
