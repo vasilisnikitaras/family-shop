@@ -871,3 +871,166 @@ select {
   max-width: 480px !important;
   margin: 0 auto !important;
 }
+/* ============================
+   GLOBAL CENTERING FIX
+   ============================ */
+
+.max-w-xl.mx-auto {
+  max-width: 480px !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+/* ============================
+   LOGIN PAGE — CENTER + PREMIUM
+   ============================ */
+
+.min-h-screen.flex.items-center.justify-center {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 20px !important;
+}
+
+.card.max-w-sm.w-full {
+  max-width: 380px !important;
+  width: 100% !important;
+  margin: 0 auto !important;
+  border-radius: 14px !important;
+  padding: 24px !important;
+}
+
+.card.max-w-sm.w-full input {
+  width: 100% !important;
+  padding: 14px !important;
+  border-radius: 10px !important;
+  font-size: 16px !important;
+}
+
+/* ============================
+   ADD PRODUCT — CENTER + PREMIUM
+   ============================ */
+
+.card.space-y-3 {
+  width: 100% !important;
+  max-width: 480px !important;
+  margin: 0 auto !important;
+  padding: 20px !important;
+  border-radius: 14px !important;
+}
+
+/* Grid fix */
+.grid.grid-cols-3 {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 10px !important;
+  align-items: center !important;
+}
+
+/* Quantity input */
+.input-qty {
+  width: 100% !important;
+  padding: 12px !important;
+  border-radius: 10px !important;
+  font-size: 16px !important;
+}
+
+/* Store select */
+select {
+  width: 100% !important;
+  padding: 12px !important;
+  border-radius: 10px !important;
+  font-size: 16px !important;
+}
+
+/* Add button */
+.btn.btn-purple {
+  width: 100% !important;
+  padding: 12px !important;
+  border-radius: 10px !important;
+}
+
+/* ============================
+   GENERAL INPUT FIX
+   ============================ */
+
+.input,
+input,
+select {
+  width: 100% !important;
+  padding: 12px !important;
+  border-radius: 10px !important;
+  font-size: 16px !important;
+}
+
+/* ============================
+   ITEM CARD PREMIUM
+   ============================ */
+
+li.card {
+  border-radius: 12px !important;
+  padding: 14px !important;
+  transition: all 0.2s ease !important;
+}
+
+li.card button {
+  padding: 6px 10px !important;
+  font-size: 13px !important;
+  border-radius: 6px !important;
+}
+
+/* ============================
+   LIGHT MODE FIX
+   ============================ */
+
+body:not(.dark) {
+  background: #fafafa !important;
+  color: #222 !important;
+}
+
+body:not(.dark) .card {
+  background: #ffffff !important;
+  border: 1px solid #e5e5e5 !important;
+}
+
+body:not(.dark) input,
+body:not(.dark) select,
+body:not(.dark) .input {
+  background: #ffffff !important;
+  color: #222 !important;
+  border: 1px solid #ccc !important;
+}
+
+body:not(.dark) button,
+body:not(.dark) .btn {
+  background: #eaeaea !important;
+  color: #222 !important;
+}
+
+/* ============================
+   DARK MODE FIX
+   ============================ */
+
+body.dark {
+  background: #0A2A43 !important;
+  color: #fff !important;
+}
+
+body.dark .card {
+  background: #123456 !important;
+  border: 1px solid #1f3b5a !important;
+}
+
+body.dark input,
+body.dark select,
+body.dark .input {
+  background: #1f3b5a !important;
+  color: #fff !important;
+  border: 1px solid #345 !important;
+}
+
+body.dark button,
+body.dark .btn {
+  background: #1f3b5a !important;
+  color: #fff !important;
+}
