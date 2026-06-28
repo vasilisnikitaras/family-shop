@@ -23,7 +23,7 @@
     }
   },
   "include": [
-    "next-env.d.ts",
+    "next.config.ts.bak",
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
