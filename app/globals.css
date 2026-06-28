@@ -191,3 +191,96 @@ input[type="number"]::-webkit-outer-spin-button {
 .dark .input-number-fix::-webkit-outer-spin-button {
   filter: invert(1);
 }
+body {
+  margin: 0;
+  padding: 0;
+  background: #0A2A43;
+  color: white;
+  font-family: sans-serif;
+}
+
+.container {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 16px;
+}
+input, select {
+  width: 100%;
+  padding: 12px;
+  font-size: 16px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+button {
+  width: 100%;
+  padding: 14px;
+  font-size: 16px;
+  border-radius: 8px;
+  margin-top: 8px;
+}
+.item {
+  background: #123456;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.item button {
+  padding: 6px 10px;
+  font-size: 14px;
+  margin-left: 6px;
+}
+.container {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 16px;
+}
+/* MOBILE CONTAINER */
+.container {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+/* INPUTS */
+input, select {
+  width: 100%;
+  padding: 12px;
+  font-size: 16px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+
+/* BUTTONS */
+button {
+  width: 100%;
+  padding: 14px;
+  font-size: 16px;
+  border-radius: 8px;
+  margin-top: 8px;
+}
+
+/* SHOPPING LIST ITEMS */
+.item {
+  background: #123456;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* ITEM BUTTONS */
+.item button {
+  padding: 6px 10px;
+  font-size: 14px;
+  margin-left: 6px;
+}
+.container {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 16px;
+}
