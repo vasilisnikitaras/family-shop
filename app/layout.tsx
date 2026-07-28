@@ -23,20 +23,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       </head>
 
       <body>
-        {/* SAFE WRAPPER — δεν σπάει το login */}
         <div className="app-wrapper">
           {children}
         </div>
-
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              if ("serviceWorker" in navigator) {
-                navigator.serviceWorker.register("/service-worker.js");
-              }
-            `,
-          }}
-        />
       </body>
     </html>
   );

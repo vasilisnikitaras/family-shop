@@ -87,6 +87,7 @@ useEffect(() => {
   return null;
 }
 
+
  const postJSON = async (url: string, body: any) => {
   const res = await fetch(url, {
     method: "POST",
@@ -626,6 +627,90 @@ return (
           </ul>
         </div>
       )}
+      
+{/* STORE VIEW */}
+{viewMode === "store" && (
+  <div className="space-y-4">
+    <h2 className="section-title text-purple-700 dark:text-purple-300">
+      {t.store_view}
+    </h2>
+
+    {stores.length === 0 && (
+      <p className="text-center text-gray-400 dark:text-gray-500">
+        {t.no_stores}
+      </p>
+    )}
+
+    {stores.map((store: any) => {
+      const storeItems = items.filter(
+        (i: any) => String(i.store_id) === String(store.id)
+      );
+
+      return (
+        <div key={store.id} className="card p-4 space-y-3">
+          <h3 className="text-lg font-bold text-purple-600 dark:text-purple-300">
+            {store.name}
+          </h3>
+
+          {storeItems.length === 0 && (
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              {t.no_items_in_store}
+            </p>
+          )}
+
+          {storeItems.map((item: any) => (
+            <div
+              key={item.id}
+              className={`card p-3 flex justify-between items-center ${
+                item.is_checked && "bg-green-100 dark:bg-green-900"
+              }`}
+            >
+              <div className="flex flex-col">
+                <span
+                  className={`font-medium ${
+                    item.is_checked
+                      ? "line-through text-green-900 dark:text-green-200"
+                      : ""
+                  }`}
+                >
+                  {item.name} (x{item.qty})
+                </span>
+
+                <span className="text-xs text-gray-500 dark:text-gray-300">
+                  Added by: {item.added_by}
+                </span>
+              </div>
+
+              <div className="flex gap-2">
+                <button
+                  onClick={() => toggleGotIt(item)}
+                  className="btn btn-green"
+                >
+                  {t.got_it}
+                </button>
+
+                <button
+                  onClick={() => editItem(item)}
+                  className="btn btn-primary"
+                >
+                  {t.edit}
+                </button>
+
+                <button
+                  onClick={() => deleteItem(item)}
+                  className="btn btn-danger"
+                >
+                  {t.delete}
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      );
+    })}
+  </div>
+)}
+
 
       {/* FOOTER */}
       <footer className="pt-6 text-center space-y-1 text-[10px] text-gray-500 dark:text-gray-300">
