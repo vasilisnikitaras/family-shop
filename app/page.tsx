@@ -30,34 +30,26 @@ export default function Page() {
 
   const [viewMode, setViewMode] = useState<"list" | "store">("list");
 
-// ⭐ FIX: ΤΩΡΑ ΕΠΙΤΡΕΠΕΤΑΙ
-useEffect(() => {
-  const fc = localStorage.getItem("family_code");
-  if (fc) setFamilyCode(fc);
-}, []);
+  // --------------------------------------
+  // AUTO LOAD FAMILY CODE
+  // --------------------------------------
+  useEffect(() => {
+    const fc = localStorage.getItem("family_code");
+    if (fc) setFamilyCode(fc);
+  }, []);
 
   const themeClass =
     theme === "dark"
       ? "bg-[#0b0b0b] text-[#f5f5f5]"
       : "bg-[#f3f4f6] text-[#1a1a1a]";
 
- // --------------------------------------
-// HEARTBEAT
-// --------------------------------------
-useEffect(() => {
-  if (!familyCode) return;
+  // --------------------------------------
+  // HEARTBEAT
+  // --------------------------------------
+  useEffect(() => {
+    if (!familyCode) return;
 
-  fetch("/api/setOnline", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-family-code": familyCode || "",
-    },
-    body: JSON.stringify({ family_code: familyCode }),
-  });
-
-  const interval = setInterval(() => {
-    fetch("/api/ping", {
+    fetch("/api/setOnline", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -65,48 +57,54 @@ useEffect(() => {
       },
       body: JSON.stringify({ family_code: familyCode }),
     });
-  }, 30000);
 
-  return () => {
-    fetch("/api/setOffline", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-family-code": familyCode || "",
-      },
-      body: JSON.stringify({ family_code: familyCode }),
-    });
-    clearInterval(interval);
-  };
-}, [familyCode]);
+    const interval = setInterval(() => {
+      fetch("/api/ping", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-family-code": familyCode || "",
+        },
+        body: JSON.stringify({ family_code: familyCode }),
+      });
+    }, 30000);
+
+    return () => {
+      fetch("/api/setOffline", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-family-code": familyCode || "",
+        },
+        body: JSON.stringify({ family_code: familyCode }),
+      });
+      clearInterval(interval);
+    };
+  }, [familyCode]);
 
   // --------------------------------------
   // API POST
   // --------------------------------------
-  if (typeof window === "undefined") {
-  return null;
-}
+  if (typeof window === "undefined") return null;
 
+  const postJSON = async (url: string, body: any) => {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-family-code": localStorage.getItem("family_code") || "",
+      },
+      body: JSON.stringify(body),
+    });
 
- const postJSON = async (url: string, body: any) => {
-  const res = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-family-code": localStorage.getItem("family_code") || ""
-    },
-    body: JSON.stringify(body),
-  });
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error("API ERROR:", errorText);
+      return { success: false, error: errorText };
+    }
 
-  if (!res.ok) {
-    const errorText = await res.text();
-    console.error("API ERROR:", errorText);
-    return { success: false, error: errorText };
-  }
-
-  return res.json();
-};
-
+    return res.json();
+  };
 
   // --------------------------------------
   // LOGIN
@@ -134,49 +132,53 @@ useEffect(() => {
     loadStores();
   };
 
- // --------------------------------------
-// AUTO LOGIN
-// --------------------------------------
-useEffect(() => {
-  const fc = localStorage.getItem("family_code");
-  const fp = localStorage.getItem("family_password");
-  const un = localStorage.getItem("user_name");
+  // --------------------------------------
+  // AUTO LOGIN
+  // --------------------------------------
+  useEffect(() => {
+    const fc = localStorage.getItem("family_code");
+    const fp = localStorage.getItem("family_password");
+    const un = localStorage.getItem("user_name");
 
-  if (fc && fp && un) {
-    setFamilyCode(fc);
-    setFamilyPassword(fp);
-    setUserName(un);
+    if (fc && fp && un) {
+      setFamilyCode(fc);
+      setFamilyPassword(fp);
+      setUserName(un);
 
-    loadItems();
-    loadStores();
-  }
-}, []);
+      loadItems();
+      loadStores();
+    }
+  }, []);
 
   // --------------------------------------
   // LOAD ITEMS
   // --------------------------------------
-  const loadItems = async () => {
-    if (!familyCode) return;
+const loadItems = async () => {
+  if (!familyCode) return;
 
-    const res = await postJSON("/api/getList", {
-      family_code: familyCode,
-    });
+  const res = await postJSON("/api/getList", {
+    family_code: familyCode,
+  });
 
-    const cloned = (res.items || []).map((x: any) => ({
-      ...x,
-      id: x.id,
-      is_checked: x.is_checked === true || x.is_checked === "true",
-      store_id: x.store_id ? String(x.store_id) : "",
-      added_by: x.added_by || "Unknown",
-    }));
+  console.log("ITEMS RAW:", res.items);
 
-    setItems(cloned);
-  };
+  const cloned = (res.items || []).map((x: any) => ({
+    ...x,
+    id: x.id,
+    is_checked: x.is_checked === true || x.is_checked === "true",
+    store_id: x.store_id ? String(x.store_id) : null,
+    added_by: x.added_by || "Unknown",
+  }));
+
+  console.log("ITEMS CLONED:", cloned);
+
+  setItems(cloned);
+};
 
   // --------------------------------------
-// LOAD STORES
-// --------------------------------------
-const loadStores = async () => {
+  // LOAD STORES
+  // --------------------------------------
+  const loadStores = async () => {
   if (!familyCode) return;
 
   const res = await postJSON("/api/getStores", {
@@ -185,8 +187,12 @@ const loadStores = async () => {
 
   const cloned = (res.stores || []).map((x: any) => ({
     ...x,
-    id: String(x.id),
+    id: String(x.store_id),
+    store_id: String(x.store_id),
+    name: x.name,
   }));
+
+  console.log("STORES LOADED:", cloned);   // ← ΕΔΩ ΑΚΡΙΒΩΣ
 
   setStores(cloned);
 };
@@ -206,59 +212,56 @@ const loadStores = async () => {
     setStores([]);
   };
 
-  
   // --------------------------------------
   // ADD STORE
   // --------------------------------------
- const addStore = async () => {
-  if (!newStoreName.trim()) {
-    console.error("EMPTY STORE NAME");
-    return;
-  }
+  const addStore = async () => {
+    if (!newStoreName.trim()) return;
 
-  const res = await fetch("/api/addStore", {
-    method: "POST",
-   headers: {
-  "Content-Type": "application/json",
-  "x-family-code": familyCode || "",
-  "x-family-password": familyPassword || "",
-},
+    const res = await fetch("/api/addStore", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-family-code": familyCode || "",
+        "x-family-password": familyPassword || "",
+      },
+      body: JSON.stringify({
+        name: newStoreName.trim(),
+      }),
+    });
 
-    body: JSON.stringify({
-      name: newStoreName.trim(),
-    }),
+    const data = await res.json();
+
+    if (data.exists) {
+      alert("⚠️ This store already exists!");
+      return;
+    }
+
+    if (data.success) {
+      setNewStoreName("");
+      loadStores();
+    }
+  };
+
+ const deleteStore = async (storeId: string) => {
+  console.log("DELETE STORE CALLED WITH:", storeId);
+
+  const res = await postJSON("/api/deleteStore", {
+    id: storeId,
+    family_code: familyCode,
   });
 
-  const data = await res.json();
-  console.log("ADD STORE RESPONSE:", data);
+  console.log("DELETE STORE RESPONSE:", res);
 
-  if (data.exists) {
-    alert("⚠️ This store already exists!");
-    return;
-  }
+  if (res.success) {
+    setStores((prev) => prev.filter((s) => s.store_id !== storeId));
+    setItems((prev) => prev.filter((i) => i.store_id !== storeId));
 
-  if (data.success) {
-    setNewStoreName("");
-    loadStores(); // 🔥 ΔΕΝ ΤΟ ΠΕΙΡΑΖΟΥΜΕ
+    loadStores();
+    loadItems();
   }
 };
 
-  // --------------------------------------
-  // DELETE STORE
-  // --------------------------------------
-  const deleteStore = async (storeId: string) => {
-    const res = await postJSON("/api/deleteStore", {
-      id: storeId,
-      family_code: familyCode,
-    });
-
-    if (res.success) {
-      setStores((prev) => prev.filter((s) => s.id !== storeId));
-      setItems((prev) => prev.filter((i) => i.store_id !== storeId));
-      loadStores();
-      loadItems();
-    }
-  };
 
   // --------------------------------------
   // ADD ITEM
@@ -352,380 +355,234 @@ const loadStores = async () => {
   // --------------------------------------
   if (!familyCode) {
     return (
-      <div
-        className={`min-h-screen px-2 py-4 flex justify-center items-center ${themeClass}`}
-      >
+      <div className={`min-h-screen px-2 py-4 flex justify-center items-center ${themeClass}`}>
         <div className="w-full max-w-xs mx-auto space-y-4 p-6 rounded-xl shadow-xl card">
           <h1 className="text-xl font-bold text-center">Enter Family Code</h1>
-          <input
-            className="input"
-            placeholder="Family code..."
-            value={loginCode}
-            onChange={(e) => setLoginCode(e.target.value)}
-          />
+          <input className="input" placeholder="Family code..." value={loginCode} onChange={(e) => setLoginCode(e.target.value)} />
 
-          <h1 className="text-xl font-bold text-center mt-4">
-            Enter Password
-          </h1>
-          <input
-            type="password"
-            className="input"
-            placeholder="Password..."
-            value={loginPassword}
-            onChange={(e) => setLoginPassword(e.target.value)}
-          />
+          <h1 className="text-xl font-bold text-center mt-4">Enter Password</h1>
+          <input type="password" className="input" placeholder="Password..." value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} />
 
           <h1 className="text-xl font-bold text-center mt-4">Enter User</h1>
-          <input
-            className="input"
-            placeholder="Your name..."
-            value={loginUserName}
-            onChange={(e) => setLoginUserName(e.target.value)}
-          />
+          <input className="input" placeholder="Your name..." value={loginUserName} onChange={(e) => setLoginUserName(e.target.value)} />
 
-          <button onClick={handleLogin} className="btn btn-purple w-full">
-            Join Family
-          </button>
+          <button onClick={handleLogin} className="btn btn-purple w-full">Join Family</button>
         </div>
       </div>
     );
   }
 
   // --------------------------------------
-// MAIN PAGE
-// --------------------------------------
-return (
-  <div
-    className={`page-container min-h-screen flex justify-center items-start ${themeClass}`}
-  >
-    <div className="w-full max-w-xl space-y-8">
+  // MAIN PAGE
+  // --------------------------------------
+  return (
+    <div className={`page-container min-h-screen flex justify-center items-start ${themeClass}`}>
+      <div className="w-full max-w-xl space-y-8">
 
-      {/* HEADER */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="header-title text-3xl font-extrabold text-purple-700 dark:text-purple-300">
-            {t.title}
-          </h1>
-          <p className="header-subtitle text-xs text-gray-500 dark:text-gray-300 mt-1">
-            Family: {familyCode}
-          </p>
-          <p className="header-subtitle text-xs text-gray-500 dark:text-gray-300">
-            User: {userName}
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <select
-            value={lang}
-            onChange={(e) => setLang(e.target.value)}
-            className="select"
-          >
-            <option value="en">EN</option>
-            <option value="el">EL</option>
-            <option value="fr">FR</option>
-            <option value="es">ES</option>
-            <option value="it">IT</option>
-            <option value="de">DE</option>
-            <option value="fi">FI</option>
-            <option value="ar">AR</option>
-            <option value="ja">JA</option>
-            <option value="zh">ZH</option>
-          </select>
-
-          <button
-            onClick={() =>
-              setTheme(theme === "dark" ? "light-dark" : "dark")
-            }
-            className="btn btn-purple"
-          >
-            {theme === "dark" ? "Light-Dark" : "Dark"}
-          </button>
-
-          <button onClick={logoutFamily} className="btn btn-danger">
-            Switch
-          </button>
-        </div>
-      </div>
-
-      {/* TOGGLE VIEW */}
-      <div className="flex justify-center">
-        <button
-          onClick={() =>
-            setViewMode(viewMode === "list" ? "store" : "list")
-          }
-          className="btn btn-light-purple w-full"
-        >
-          {viewMode === "list" ? "Store View" : "List View"}
-        </button>
-      </div>
-
-      {/* ADD STORE */}
-      <div className="card space-y-3">
-        <div className="flex flex-col sm:flex-row gap-2">
-          <input
-            className="input"
-            placeholder={t.new_store}
-            value={newStoreName}
-            onChange={(e) => setNewStoreName(e.target.value)}
-          />
-          <button onClick={addStore} className="btn btn-purple">
-            {t.add_store}
-          </button>
-        </div>
-
-        <button
-          onClick={() => setStoreModal(true)}
-          className="btn btn-light-purple w-full"
-        >
-          {t.manage_stores} ▼
-        </button>
-      </div>
-
-      {/* STORE MODAL */}
-      {storeModal && (
-        <div className="modal-bg fixed inset-0 z-[9998] flex items-center justify-center">
-          <div className="modal-content bg-white dark:bg-[#1a1a1a] p-4 rounded-lg z-[9999] w-full max-w-sm">
-            <h2 className="section-title text-purple-700 dark:text-purple-300 text-center mb-3">
-              {t.manage_stores}
-            </h2>
-
-            <div className="space-y-2 max-h-60 overflow-y-auto">
-              {stores.map((s: any) => (
-                <div
-                  key={s.id}
-                  className="flex items-center justify-between p-2 border rounded-lg dark:border-slate-700 text-sm"
-                >
-                  <span>{s.name}</span>
-                  <button
-                    onClick={() => deleteStore(s.id)}
-                    className="btn btn-danger px-2 py-1"
-                  >
-                    X
-                  </button>
-                </div>
-              ))}
-            </div>
-
-            <button
-              onClick={() => setStoreModal(false)}
-              className="btn btn-light-purple w-full mt-3"
-            >
-              Close
-            </button>
+        {/* HEADER */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="header-title text-3xl font-extrabold text-purple-700 dark:text-purple-300">{t.title}</h1>
+            <p className="header-subtitle text-xs text-gray-500 dark:text-gray-300 mt-1">Family: {familyCode}</p>
+            <p className="header-subtitle text-xs text-gray-500 dark:text-gray-300">User: {userName}</p>
           </div>
-        </div>
-      )}
 
-      {/* ADD PRODUCT */}
-      <div className="card space-y-3">
-        <h2 className="section-title text-purple-700 dark:text-purple-300">
-          {t.add_product}
-        </h2>
-
-        <div className="flex flex-col gap-3">
-          <input
-            className="input"
-            placeholder={t.add_product}
-            value={newItemName}
-            onChange={(e) => setNewItemName(e.target.value)}
-          />
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 items-center overflow-visible relative">
-            <input
-              type="number"
-              min={1}
-              className="input-qty"
-              value={newItemQty}
-              onChange={(e) => setNewItemQty(e.target.value)}
-            />
-
-            <select
-              className="w-full p-3 rounded-xl border border-gray-300 dark:border-gray-700
-                        bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-200
-                        shadow-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500
-                        transition-all cursor-pointer z-50"
-              value={newItemStore}
-              onChange={(e) => setNewItemStore(e.target.value)}
-            >
-              <option value="">{t.select_store}</option>
-              {stores.map((s: any) => (
-                <option key={s.id} value={s.id}>
-                  {s.name}
-                </option>
-              ))}
+          <div className="flex items-center gap-2">
+            <select value={lang} onChange={(e) => setLang(e.target.value)} className="select">
+              <option value="en">EN</option>
+              <option value="el">EL</option>
+              <option value="fr">FR</option>
+              <option value="es">ES</option>
+              <option value="it">IT</option>
+              <option value="de">DE</option>
+              <option value="fi">FI</option>
+              <option value="ar">AR</option>
+              <option value="ja">JA</option>
+              <option value="zh">ZH</option>
             </select>
 
-            <button onClick={addItem} className="btn btn-purple">
-              {t.add}
+            <button onClick={() => setTheme(theme === "dark" ? "light-dark" : "dark")} className="btn btn-purple">
+              {theme === "dark" ? "Light-Dark" : "Dark"}
             </button>
+
+            <button onClick={logoutFamily} className="btn btn-danger">Switch</button>
           </div>
         </div>
+
+        {/* TOGGLE VIEW */}
+        <div className="flex justify-center">
+          <button onClick={() => setViewMode(viewMode === "list" ? "store" : "list")} className="btn btn-light-purple w-full">
+            {viewMode === "list" ? "Store View" : "List View"}
+          </button>
+        </div>
+
+        {/* ADD STORE */}
+        <div className="card space-y-3">
+          <div className="flex flex-col sm:flex-row gap-2">
+            <input className="input" placeholder={t.new_store} value={newStoreName} onChange={(e) => setNewStoreName(e.target.value)} />
+            <button onClick={addStore} className="btn btn-purple">{t.add_store}</button>
+          </div>
+
+          <button onClick={() => setStoreModal(true)} className="btn btn-light-purple w-full">
+            {t.manage_stores} ▼
+          </button>
+        </div>
+
+        {/* STORE MODAL */}
+        {storeModal && (
+  <div className="modal-bg fixed inset-0 z-[9998] flex items-center justify-center">
+    <div className="modal-content bg-white dark:bg-[#1a1a1a] p-4 rounded-lg z-[9999] w-full max-w-sm">
+      <h2 className="section-title text-purple-700 dark:text-purple-300 text-center mb-3">
+        {t.manage_stores}
+      </h2>
+
+      <div className="space-y-2 max-h-60 overflow-y-auto">
+        {stores.map((s: any) => (
+          <div
+            key={s.store_id}
+            className="flex items-center justify-between p-2 border rounded-lg dark:border-slate-700 text-sm"
+          >
+            <span>{s.name}</span>
+            <button
+              onClick={() => deleteStore(s.store_id)}
+              className="btn btn-danger px-2 py-1"
+            >
+              X
+            </button>
+          </div>
+        ))}
       </div>
 
-      {/* LIST VIEW */}
-      {viewMode === "list" && (
-        <div className="space-y-3">
-          <h2 className="section-title text-purple-700 dark:text-purple-300">
-            {t.list}
-          </h2>
-
-          <ul className="space-y-3">
-            {items.map((i: any) => {
-              const storeName = stores.find(
-                (s: any) => String(s.id) === String(i.store_id)
-              )?.name;
-
-              return (
-                <li
-                  key={i.id}
-                  className={`card list-item flex justify-between transition-all pointer-events-auto ${
-                    i.is_checked && "bg-green-100 dark:bg-green-900"
-                  }`}
-                >
-                  <div className="flex flex-col gap-1 w-full">
-                    <div className="flex items-center gap-2">
-                      {i.is_checked && (
-                        <span className="text-green-600 font-bold">✔</span>
-                      )}
-
-                      <span
-                        className={`text-sm font-medium ${
-                          i.is_checked
-                            ? "line-through text-green-900 dark:text-green-200"
-                            : ""
-                        }`}
-                      >
-                        {i.name} (x{i.quantity})
-                      </span>
-                    </div>
-
-                    <span className="text-xs text-gray-500 dark:text-gray-300 mt-[3px] block">
-                      {storeName} - Added by: {i.added_by}
-                    </span>
-                  </div>
-
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      onClick={() => toggleGotIt(i)}
-                      className="btn btn-green"
-                    >
-                      {t.got_it}
-                    </button>
-
-                    <button onClick={() => editItem(i)} className="btn btn-primary">
-                      {t.edit}
-                    </button>
-
-                    <button onClick={() => deleteItem(i)} className="btn btn-danger">
-                      {t.delete}
-                    </button>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      )}
-      
-{/* STORE VIEW */}
-{viewMode === "store" && (
-  <div className="space-y-4">
-    <h2 className="section-title text-purple-700 dark:text-purple-300">
-      {t.store_view}
-    </h2>
-
-    {stores.length === 0 && (
-      <p className="text-center text-gray-400 dark:text-gray-500">
-        {t.no_stores}
-      </p>
-    )}
-
-    {stores.map((store: any) => {
-      const storeItems = items.filter(
-        (i: any) => String(i.store_id) === String(store.id)
-      );
-
-      return (
-        <div key={store.id} className="card p-4 space-y-3">
-          <h3 className="text-lg font-bold text-purple-600 dark:text-purple-300">
-            {store.name}
-          </h3>
-
-          {storeItems.length === 0 && (
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              {t.no_items_in_store}
-            </p>
-          )}
-
-          {storeItems.map((item: any) => (
-            <div
-              key={item.id}
-              className={`card p-3 flex justify-between items-center ${
-                item.is_checked && "bg-green-100 dark:bg-green-900"
-              }`}
-            >
-              <div className="flex flex-col">
-                <span
-                  className={`font-medium ${
-                    item.is_checked
-                      ? "line-through text-green-900 dark:text-green-200"
-                      : ""
-                  }`}
-                >
-                  {item.name} (x{item.qty})
-                </span>
-
-                <span className="text-xs text-gray-500 dark:text-gray-300">
-                  Added by: {item.added_by}
-                </span>
-              </div>
-
-              <div className="flex gap-2">
-                <button
-                  onClick={() => toggleGotIt(item)}
-                  className="btn btn-green"
-                >
-                  {t.got_it}
-                </button>
-
-                <button
-                  onClick={() => editItem(item)}
-                  className="btn btn-primary"
-                >
-                  {t.edit}
-                </button>
-
-                <button
-                  onClick={() => deleteItem(item)}
-                  className="btn btn-danger"
-                >
-                  {t.delete}
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      );
-    })}
+      <button
+        onClick={() => setStoreModal(false)}
+        className="btn btn-light-purple w-full mt-3"
+      >
+        Close
+      </button>
+    </div>
   </div>
 )}
 
 
-      {/* FOOTER */}
-      <footer className="pt-6 text-center space-y-1 text-[10px] text-gray-500 dark:text-gray-300">
-        <p>© 2026 VNF Software — Created by Vasilis Fanes Nikitaras.</p>
-        <p>Unauthorized copying or resale is strictly prohibited.</p>
-        <p>
-          Contact:{" "}
-          <a href="mailto:vasilis.nikitaras@gmail.com" className="underline">
-            vasilis.nikitaras@gmail.com
-          </a>
-        </p>
-      </footer>
+        {/* ADD PRODUCT */}
+        <div className="card space-y-3">
+          <h2 className="section-title text-purple-700 dark:text-purple-300">{t.add_product}</h2>
 
-       </div>
+          <div className="flex flex-col gap-3">
+            <input className="input" placeholder={t.add_product} value={newItemName} onChange={(e) => setNewItemName(e.target.value)} />
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 items-center overflow-visible relative">
+              <input type="number" min={1} className="input-qty" value={newItemQty} onChange={(e) => setNewItemQty(e.target.value)} />
+
+              <select className="w-full p-3 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-200 shadow-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all cursor-pointer z-50"
+                value={newItemStore}
+                onChange={(e) => setNewItemStore(e.target.value)}
+              >
+                <option value="">{t.select_store}</option>
+
+                {stores.map((s: any) => (
+                  <option key={s.store_id} value={s.store_id}>{s.name}</option>
+                ))}
+              </select>
+
+              <button onClick={addItem} className="btn btn-purple">{t.add}</button>
+            </div>
+          </div>
+        </div>
+
+        {/* LIST VIEW */}
+        {viewMode === "list" && (
+          <div className="space-y-3">
+            <h2 className="section-title text-purple-700 dark:text-purple-300">{t.list}</h2>
+
+            <ul className="space-y-3">
+              {items.map((i: any) => {
+                const storeName = stores.find((s: any) => String(s.store_id) === String(i.store_id))?.name;
+
+                return (
+                  <li key={i.id} className={`card list-item flex justify-between transition-all pointer-events-auto ${i.is_checked && "bg-green-100 dark:bg-green-900"}`}>
+                    <div className="flex flex-col gap-1 w-full">
+                      <div className="flex items-center gap-2">
+                        {i.is_checked && <span className="text-green-600 font-bold">✔</span>}
+
+                        <span className={`text-sm font-medium ${i.is_checked ? "line-through text-green-900 dark:text-green-200" : ""}`}>
+                          {i.name} (x{i.quantity})
+                        </span>
+                      </div>
+
+                      <span className="text-xs text-gray-500 dark:text-gray-300 mt-[3px] block">
+                        {storeName} - Added by: {i.added_by}
+                      </span>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <button type="button" onClick={() => toggleGotIt(i)} className="btn btn-green">{t.got_it}</button>
+                      <button onClick={() => editItem(i)} className="btn btn-primary">{t.edit}</button>
+                      <button onClick={() => deleteItem(i)} className="btn btn-danger">{t.delete}</button>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        )}
+
+        {/* STORE VIEW */}
+        {viewMode === "store" && (
+          <div className="space-y-4">
+            <h2 className="section-title text-purple-700 dark:text-purple-300">{t.store_view}</h2>
+
+            {stores.length === 0 && (
+              <p className="text-center text-gray-400 dark:text-gray-500">{t.no_stores}</p>
+            )}
+
+            {stores.map((store: any) => {
+              const storeItems = items.filter((i: any) => String(i.store_id) === String(store.store_id));
+
+              return (
+                <div key={store.store_id} className="card p-4 space-y-3">
+                  <h3 className="text-lg font-bold text-purple-600 dark:text-purple-300">{store.name}</h3>
+
+                  {storeItems.length === 0 && (
+                    <p className="text-sm text-gray-500 dark:text-gray-400">{t.no_items_in_store}</p>
+                  )}
+
+                  {storeItems.map((item: any) => (
+                    <div key={item.id} className={`card p-3 flex justify-between items-center ${item.is_checked && "bg-green-100 dark:bg-green-900"}`}>
+                      <div className="flex flex-col">
+                        <span className={`font-medium ${item.is_checked ? "line-through text-green-900 dark:text-green-200" : ""}`}>
+                          {item.name} (x{item.quantity})
+                        </span>
+
+                        <span className="text-xs text-gray-500 dark:text-gray-300">Added by: {item.added_by}</span>
+                      </div>
+
+                      <div className="flex gap-2">
+                        <button onClick={() => toggleGotIt(item)} className="btn btn-green">{t.got_it}</button>
+                        <button onClick={() => editItem(item)} className="btn btn-primary">{t.edit}</button>
+                        <button onClick={() => deleteItem(item)} className="btn btn-danger">{t.delete}</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* FOOTER */}
+        <footer className="pt-6 text-center space-y-1 text-[10px] text-gray-500 dark:text-gray-300">
+          <p>© 2026 VNF Software — Created by Vasilis Fanes Nikitaras.</p>
+          <p>Unauthorized copying or resale is strictly prohibited.</p>
+          <p>
+            Contact:{" "}
+            <a href="mailto:vasilis.nikitaras@gmail.com" className="underline">
+              vasilis.nikitaras@gmail.com
+            </a>
+          </p>
+        </footer>
+
+      </div>
     </div>
   );
 }
-

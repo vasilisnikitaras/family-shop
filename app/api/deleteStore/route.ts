@@ -17,14 +17,18 @@ export async function POST(request: Request) {
       UPDATE items_v2
       SET store_id = NULL
       WHERE store_id = ${id}
-      AND family_code = ${family_code}
+      AND family_id = (
+        SELECT id FROM families WHERE family_code = ${family_code}
+      )
     `;
 
     // 2️⃣ Delete store from stores_v2
     await sql`
       DELETE FROM stores_v2
       WHERE id = ${id}
-      AND family_code = ${family_code}
+      AND family_id = (
+        SELECT id FROM families WHERE family_code = ${family_code}
+      )
     `;
 
     return NextResponse.json({ success: true });

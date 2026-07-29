@@ -9,10 +9,27 @@ export async function POST(request: Request) {
       return NextResponse.json({ stores: [] });
     }
 
-    const stores = await sql`
-      SELECT id, store_name AS name
-      FROM stores_v2
+    // Βρες το family_id από το family_code
+    const family = await sql`
+      SELECT id 
+      FROM families
       WHERE family_code = ${family_code}
+    `;
+
+    if (family.length === 0) {
+      return NextResponse.json({ stores: [] });
+    }
+
+    const family_id = family[0].id;
+
+    // Φέρε τα stores με βάση το family_id
+    const stores = await sql`
+      SELECT 
+        id AS store_id,
+        store_name AS name,
+        family_id
+      FROM stores_v2
+      WHERE family_id = ${family_id}
       ORDER BY store_name ASC
     `;
 

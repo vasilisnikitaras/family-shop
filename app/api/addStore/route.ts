@@ -5,13 +5,16 @@ export async function POST(request: Request) {
   try {
     const { name } = await request.json();
 
-    if (!name) {
+    if (!name || !name.trim()) {
       return NextResponse.json(
         { success: false, message: "Missing store name" },
         { status: 400 }
       );
     }
 
+    const storeName = name.trim();
+
+    // 🔥 Read family credentials from headers
     const familyCode = request.headers.get("x-family-code");
     const familyPassword = request.headers.get("x-family-password");
 
@@ -22,9 +25,9 @@ export async function POST(request: Request) {
       );
     }
 
-    // ΒΡΕΣ ΤΟ FAMILY ID
+    // 🔥 Find family_id
     const family = await sql`
-      SELECT id FROM families 
+      SELECT id FROM families
       WHERE family_code = ${familyCode}
       AND family_password = ${familyPassword}
     `;
@@ -38,24 +41,28 @@ export async function POST(request: Request) {
 
     const family_id = family[0].id;
 
-    // 🔥 CHECK IF STORE ALREADY EXISTS
+    // 🔥 Check if store already exists for this family
     const existing = await sql`
-      SELECT id FROM stores_v2 
-      WHERE store_name = ${name} AND family_id = ${family_id}
+      SELECT id FROM stores_v2
+      WHERE store_name = ${storeName}
+      AND family_id = ${family_id}
     `;
 
     if (existing.length > 0) {
       return NextResponse.json({ exists: true });
     }
 
-    // 🔥 INSERT NEW STORE
+    // 🔥 Insert new store
     const store = await sql`
       INSERT INTO stores_v2 (store_name, family_id)
-      VALUES (${name}, ${family_id})
-      RETURNING id, store_name
+      VALUES (${storeName}, ${family_id})
+      RETURNING id, store_name, family_id
     `;
 
-    return NextResponse.json({ success: true, store: store[0] });
+    return NextResponse.json({
+      success: true,
+      store: store[0],
+    });
 
   } catch (error) {
     console.error("Error adding store:", error);
