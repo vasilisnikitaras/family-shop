@@ -109,15 +109,15 @@ export default function AdminPage() {
   const now = Date.now();
 
   // 👉 ΔΙΟΡΘΩΣΗ ΤΥΠΟΥ ΕΔΩ
-  const processed = data.map((d: Device) => {
-    const last = new Date(d.last_seen || 0).getTime();
-    const diff = now - last;
+ const processed = data.map((d: Device) => {
+  const last = new Date(d.last_seen || 0).getTime();
+  const diff = now - last;
 
-    return {
-      ...d,
-      is_online: diff < 60000 // 60 seconds
-    };
-  });
+  return {
+    ...d,
+    is_online: diff < 60000 // 60 seconds
+  };
+});
 
   setDevices(processed);
 };
