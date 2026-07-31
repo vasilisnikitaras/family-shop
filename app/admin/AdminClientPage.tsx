@@ -175,7 +175,7 @@ const toggleItem = async (id: number, checked: boolean, familyCode: string) => {
 
   loadItems();
 
-  
+
   const loadDevices = async () => {
     const res = await fetch(`/api/admin/getDevices?familyCode=${selectedFamily}`);
     const data = await res.json();
@@ -665,3 +665,5 @@ const toggleItem = async (id: number, checked: boolean, familyCode: string) => {
     </div>
   );
 }
+}
+
