@@ -1,20 +1,15 @@
-/** @type {import('next').NextConfig} */
-const nextConfig = {
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
   experimental: {
     serverActions: {
       bodySizeLimit: "2mb",
     },
   },
 
-  // ❌ devServer πρέπει να φύγει — δεν υποστηρίζεται στο Next.js 16
-  // devServer: {
-  //   host: "0.0.0.0",
-  //   port: 3002,
-  // },
-
   turbopack: {},
 
-  webpack: (config) => {
+  webpack: (config: any) => {
     return config;
   },
 };
