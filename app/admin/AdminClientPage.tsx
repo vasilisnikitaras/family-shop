@@ -726,5 +726,4 @@ const handlePermanentDelete = async () => {
   );
 }
 
-export default AdminClientPage;
 
