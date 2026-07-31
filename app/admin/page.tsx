@@ -108,8 +108,9 @@ export default function AdminPage() {
   // ⭐ AUTO-OFFLINE LOGIC
   const now = Date.now();
 
-  const processed = data.map(d => {
-    const last = new Date(d.last_seen).getTime();
+  // 👉 ΔΙΟΡΘΩΣΗ ΤΥΠΟΥ ΕΔΩ
+  const processed = data.map((d: Device) => {
+    const last = new Date(d.last_seen || 0).getTime();
     const diff = now - last;
 
     return {
@@ -120,6 +121,7 @@ export default function AdminPage() {
 
   setDevices(processed);
 };
+
 
 
 // ⭐ LOAD ALL DEVICES FROM ALL FAMILIES
