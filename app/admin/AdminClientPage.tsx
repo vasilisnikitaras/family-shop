@@ -145,6 +145,22 @@ const toggleActive = async (familyCode: string, current: boolean) => {
   loadFamilies();
 };
 
+const addMember = async () => {
+  if (!newMemberName.trim() || !newMemberFamily.trim()) return;
+
+  await fetch("/api/admin/addMember", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      name: newMemberName.trim(),
+      family_code: newMemberFamily.trim(),
+    }),
+  });
+
+  setNewMemberName("");
+  setNewMemberFamily("");
+  loadMembers();
+};
 
   const loadDevices = async () => {
     const res = await fetch(`/api/admin/getDevices?familyCode=${selectedFamily}`);
@@ -226,6 +242,7 @@ const toggleActive = async (familyCode: string, current: boolean) => {
   const filteredDevices = devices.filter((d) => d.is_online);
   return (
     <div className={`${darkMode ? "dark" : ""} page min-h-screen px-4 py-6`}>
+        
       <style jsx>{`
         :root {
           --card-bg: #ffffff;
