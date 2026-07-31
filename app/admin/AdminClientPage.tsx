@@ -132,6 +132,20 @@ const renameFamilyById = async () => {
 };
 
 
+const toggleActive = async (familyCode: string, current: boolean) => {
+  await fetch("/api/admin/toggleActive", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      family_code: familyCode,
+      is_active: !current,
+    }),
+  });
+
+  loadFamilies();
+};
+
+
   const loadDevices = async () => {
     const res = await fetch(`/api/admin/getDevices?familyCode=${selectedFamily}`);
     const data = await res.json();
