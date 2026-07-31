@@ -13,6 +13,11 @@ export default function Page() {
   const [familyPassword, setFamilyPassword] = useState<string | null>(null);
   const [userName, setUserName] = useState<string>("");
 
+
+  // ⭐ ΕΔΩ ΜΠΑΙΝΕΙ
+  const [ready, setReady] = useState(false);
+
+
   const [loginCode, setLoginCode] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   const [loginUserName, setLoginUserName] = useState("");
@@ -42,45 +47,36 @@ export default function Page() {
     theme === "dark"
       ? "bg-[#0b0b0b] text-[#f5f5f5]"
       : "bg-[#f3f4f6] text-[#1a1a1a]";
+// ONLINE / OFFLINE STATUS
+useEffect(() => {
+  if (!familyCode) return;
 
-  // --------------------------------------
-  // HEARTBEAT
-  // --------------------------------------
-  useEffect(() => {
-    if (!familyCode) return;
+  // ⭐ ΟΤΑΝ ΑΝΟΙΓΕΙ ΤΟ APP → ONLINE
+  fetch("/api/device/online", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      family_code: familyCode,
+      device_name: "FamilyShop App"
+    })
+  });
 
-    fetch("/api/setOnline", {
+  // ⭐ ΟΤΑΝ ΚΛΕΙΝΕΙ ΤΟ APP → OFFLINE
+  const handleExit = () => {
+    fetch("/api/device/offline", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-family-code": familyCode || "",
-      },
-      body: JSON.stringify({ family_code: familyCode }),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        family_code: familyCode,
+        device_name: "FamilyShop App"
+      })
     });
+  };
 
-    const interval = setInterval(() => {
-      fetch("/api/ping", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-family-code": familyCode || "",
-        },
-        body: JSON.stringify({ family_code: familyCode }),
-      });
-    }, 30000);
+  window.addEventListener("beforeunload", handleExit);
+  return () => window.removeEventListener("beforeunload", handleExit);
+}, [familyCode]);
 
-    return () => {
-      fetch("/api/setOffline", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-family-code": familyCode || "",
-        },
-        body: JSON.stringify({ family_code: familyCode }),
-      });
-      clearInterval(interval);
-    };
-  }, [familyCode]);
 
   // --------------------------------------
   // API POST
@@ -128,8 +124,8 @@ export default function Page() {
     setFamilyPassword(loginPassword);
     setUserName(loginUserName);
 
-    loadItems();
-    loadStores();
+    // loadItems();
+    // loadStores();
   };
 
   // --------------------------------------
@@ -145,10 +141,11 @@ export default function Page() {
       setFamilyPassword(fp);
       setUserName(un);
 
-      loadItems();
-      loadStores();
+      // loadItems();
+     //  loadStores();
     }
   }, []);
+  
 
   // --------------------------------------
   // LOAD ITEMS
@@ -350,27 +347,82 @@ const loadItems = async () => {
     loadStores();
   }, [familyCode]);
 
+
+// --------------------------------------
+// DEVICE HEARTBEAT (CORRECT VERSION)
+// --------------------------------------
+useEffect(() => {
+  const family_code = localStorage.getItem("family_code");
+  if (!family_code) return;
+
+  sendHeartbeat(); // immediate
+
+  const interval = setInterval(() => {
+    sendHeartbeat();
+  }, 30000);
+
+  return () => clearInterval(interval);
+}, []); // <-- VERY IMPORTANT: EMPTY ARRAY
+
+async function sendHeartbeat() {
+  const family_code = localStorage.getItem("family_code");
+  const device_name = localStorage.getItem("device_name") || "FamilyShop App";
+
+  if (!family_code) return;
+
+  await fetch("/api/deviceHeartbeat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ family_code, device_name }),
+  });
+}
+
+
   // --------------------------------------
-  // LOGIN SCREEN
-  // --------------------------------------
-  if (!familyCode) {
-    return (
-      <div className={`min-h-screen px-2 py-4 flex justify-center items-center ${themeClass}`}>
-        <div className="w-full max-w-xs mx-auto space-y-4 p-6 rounded-xl shadow-xl card">
-          <h1 className="text-xl font-bold text-center">Enter Family Code</h1>
-          <input className="input" placeholder="Family code..." value={loginCode} onChange={(e) => setLoginCode(e.target.value)} />
+// LOGIN SCREEN
+// --------------------------------------
+if (!familyCode) {
+  return (
+    <div className={`min-h-screen flex items-center justify-center px-4 py-6 ${themeClass}`}>
+      <div className="w-full max-w-sm mx-auto bg-white/10 backdrop-blur-xl p-6 rounded-2xl shadow-xl space-y-5">
 
-          <h1 className="text-xl font-bold text-center mt-4">Enter Password</h1>
-          <input type="password" className="input" placeholder="Password..." value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} />
+        <h1 className="text-xl font-bold text-center">Enter Family Code</h1>
+        <input
+          className="input w-full"
+          placeholder="Family code..."
+          value={loginCode}
+          onChange={(e) => setLoginCode(e.target.value)}
+        />
 
-          <h1 className="text-xl font-bold text-center mt-4">Enter User</h1>
-          <input className="input" placeholder="Your name..." value={loginUserName} onChange={(e) => setLoginUserName(e.target.value)} />
+        <h1 className="text-xl font-bold text-center">Enter Password</h1>
+        <input
+          type="password"
+          className="input w-full"
+          placeholder="Password..."
+          value={loginPassword}
+          onChange={(e) => setLoginPassword(e.target.value)}
+        />
 
-          <button onClick={handleLogin} className="btn btn-purple w-full">Join Family</button>
-        </div>
+        <h1 className="text-xl font-bold text-center">Enter User</h1>
+        <input
+          className="input w-full"
+          placeholder="Your name..."
+          value={loginUserName}
+          onChange={(e) => setLoginUserName(e.target.value)}
+        />
+
+        <button
+          onClick={handleLogin}
+          className="btn w-full py-3 text-lg font-semibold bg-purple-600 text-white rounded-xl"
+        >
+          Join Family
+        </button>
+
       </div>
-    );
-  }
+    </div>
+  );
+}
+
 
   // --------------------------------------
   // MAIN PAGE

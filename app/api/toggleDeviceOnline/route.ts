@@ -4,12 +4,12 @@ import { neon } from "@neondatabase/serverless";
 export async function POST(req: Request) {
   try {
     const sql = neon(process.env.DATABASE_URL!);
-    const { id, isOnline } = await req.json();
+    const { id, is_online, family_code } = await req.json();
 
     await sql`
-      UPDATE admin_devices
-      SET is_online = ${isOnline}, last_seen = NOW()
-      WHERE id = ${id};
+      UPDATE devices
+      SET is_online = ${is_online}
+      WHERE id = ${id} AND family_code = ${family_code};
     `;
 
     return NextResponse.json({ success: true });

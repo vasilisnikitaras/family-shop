@@ -6,14 +6,21 @@ export async function GET() {
     const sql = neon(process.env.DATABASE_URL!);
 
     const families = await sql`
-      SELECT id, name, code, is_active
-      FROM admin_families
+      SELECT 
+        id,
+        family_code,
+        name,
+        is_active,
+        is_online,
+        last_seen,
+        created_at
+      FROM families
       ORDER BY id ASC;
     `;
 
-    return NextResponse.json({ families });
+    return NextResponse.json(families);
   } catch (error) {
     console.error("Error loading families:", error);
-    return NextResponse.json({ families: [] }, { status: 500 });
+    return NextResponse.json({ error: "Failed to load families" }, { status: 500 });
   }
 }

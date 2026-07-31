@@ -4,11 +4,11 @@ import { neon } from "@neondatabase/serverless";
 export async function POST(req: Request) {
   try {
     const sql = neon(process.env.DATABASE_URL!);
-    const { name, familyId } = await req.json();
+    const { name, family_code } = await req.json();
 
     await sql`
-      INSERT INTO admin_members (name, family_id)
-      VALUES (${name}, ${familyId});
+      INSERT INTO family_members (name, family_code)
+      VALUES (${name}, ${family_code});
     `;
 
     return NextResponse.json({ success: true });

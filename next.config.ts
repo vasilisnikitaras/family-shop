@@ -6,9 +6,15 @@ const nextConfig = {
     },
   },
 
+  // ⭐ ΑΥΤΟ ΕΔΩ ΕΙΝΑΙ ΤΟ ΜΑΓΙΚΟ
+  devServer: {
+    host: "0.0.0.0",
+    port: 3002,
+  },
+
   turbopack: {},
 
-  webpack: (config: any) => {
+  webpack: (config) => {
     return config;
   },
 };

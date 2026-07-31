@@ -25,8 +25,9 @@ export default function AdminLogin() {
       return;
     }
 
-    localStorage.setItem("admin_token", data.token);
+    document.cookie = `admin_token=${data.token}; path=/;`;
     router.push("/admin");
+
   };
 
   return (
@@ -39,7 +40,7 @@ export default function AdminLogin() {
           box-shadow: 0 4px 12px rgba(0,0,0,0.1);
           width: 100%;
           max-width: 380px;
-          margin: auto; /* ⭐ FIX */
+          margin: auto;
         }
         .title {
           font-size: 26px;

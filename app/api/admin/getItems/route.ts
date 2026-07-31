@@ -1,22 +1,26 @@
 import { NextResponse } from "next/server";
 import { neon } from "@neondatabase/serverless";
 
-export async function GET(req: Request) {
+export async function GET() {
   try {
     const sql = neon(process.env.DATABASE_URL!);
-    const { searchParams } = new URL(req.url);
-    const familyId = searchParams.get("familyId");
 
     const items = await sql`
-      SELECT id, name, quantity, is_checked, family_id
-      FROM admin_items
-      WHERE family_id = ${familyId}
-      ORDER BY id ASC;
+      SELECT 
+        id,
+        family_code,
+        name,
+        quantity,
+        is_checked,
+        store_id,
+        created_at
+      FROM items
+      ORDER BY id DESC;
     `;
 
-    return NextResponse.json({ items });
+    return NextResponse.json(items);
   } catch (error) {
     console.error("Error loading items:", error);
-    return NextResponse.json({ items: [] }, { status: 500 });
+    return NextResponse.json({ error: "Failed to load items" }, { status: 500 });
   }
 }

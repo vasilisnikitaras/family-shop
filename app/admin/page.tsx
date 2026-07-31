@@ -2,12 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import DeleteSafetyModal from "./DeleteSafetyModal";
 
 // TYPES
 type Family = {
   id: number;
   name: string;
-  code: string;
+  family_code: string;
   is_active: boolean;
 };
 
@@ -36,13 +37,13 @@ type Device = {
 export default function AdminPage() {
   const router = useRouter();
 
-  // LOGIN PROTECTION
+  const [darkMode, setDarkMode] = useState(false);
+
   useEffect(() => {
     const token = localStorage.getItem("admin_token");
     if (!token) router.push("/admin/login");
   }, []);
 
-  // STATES
   const [families, setFamilies] = useState<Family[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
   const [items, setItems] = useState<Item[]>([]);
@@ -54,62 +55,159 @@ export default function AdminPage() {
   const [renameOld, setRenameOld] = useState("");
   const [renameNew, setRenameNew] = useState("");
 
+ 
+ const [renameId, setRenameId] = useState("");
+ const [renameNewCode, setRenameNewCode] = useState("");
+
+
   const [newMemberName, setNewMemberName] = useState("");
   const [newMemberFamilyCode, setNewMemberFamilyCode] = useState("");
 
-  // LOADERS
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteType, setDeleteType] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<any>(null);
+
+  const openDeleteModal = (type: string, data: any) => {
+    setDeleteType(type);
+    setDeleteTarget(data);
+    setShowDeleteModal(true);
+  };
+
+  const closeDeleteModal = () => {
+    setShowDeleteModal(false);
+    setDeleteType("");
+    setDeleteTarget(null);
+  };
   const loadFamilies = async () => {
     const res = await fetch("/api/admin/getFamilies");
     const data = await res.json();
-    setFamilies(data.families);
+    setFamilies(data);
     setLoading(false);
   };
 
   const loadMembers = async () => {
     const res = await fetch("/api/admin/getMembers");
     const data = await res.json();
-    setMembers(data.members);
+    setMembers(data);
   };
 
   const loadItems = async () => {
     const res = await fetch("/api/admin/getItems");
     const data = await res.json();
-    setItems(data.items);
+    setItems(data);
   };
 
   const loadDevices = async () => {
-    const res = await fetch(`/api/admin/getDevices?familyCode=${selectedFamily}`);
+  console.log("FETCH → /api/admin/getDevices?familyCode=" + selectedFamily);
+
+  const res = await fetch(`/api/admin/getDevices?familyCode=${selectedFamily}`);
+  const data = await res.json();
+
+  console.log("DEVICES RESPONSE:", data);
+
+  // ⭐ AUTO-OFFLINE LOGIC
+  const now = Date.now();
+
+  const processed = data.map(d => {
+    const last = new Date(d.last_seen).getTime();
+    const diff = now - last;
+
+    return {
+      ...d,
+      is_online: diff < 60000 // 60 seconds
+    };
+  });
+
+  setDevices(processed);
+};
+
+
+// ⭐ LOAD ALL DEVICES FROM ALL FAMILIES
+const loadAllDevices = async () => {
+  const all: any[] = [];
+
+  for (const fam of families) {
+    const res = await fetch(`/api/admin/getDevices?familyCode=${fam.family_code}`);
     const data = await res.json();
-    setDevices(data.devices);
-  };
 
-  // LIVE DEVICE MONITORING
-  useEffect(() => {
-    loadDevices();
-    const interval = setInterval(loadDevices, 5000);
-    return () => clearInterval(interval);
-  }, [selectedFamily]);
+    if (!data) continue;
 
-  useEffect(() => {
-    loadFamilies();
-    loadMembers();
-    loadItems();
-  }, []);
+    if (Array.isArray(data)) {
+      all.push(...data);
+    } else if (Array.isArray(data.devices)) {
+      all.push(...data.devices);
+    }
+  }
 
-  // FILTERED LISTS
-  const filteredMembers = selectedFamily
-    ? members.filter((m) => m.family_code === selectedFamily)
-    : members;
+  // ⭐ AUTO-OFFLINE LOGIC
+  const now = Date.now();
 
-  const filteredItems = selectedFamily
-    ? items.filter((i) => i.family_code === selectedFamily)
-    : items;
+  const processed = all.map(d => {
+    const last = new Date(d.last_seen).getTime();
+    const diff = now - last;
 
-  const filteredDevices = selectedFamily
-    ? devices.filter((d) => d.family_code === selectedFamily)
-    : devices;
+    return {
+      ...d,
+      is_online: diff < 60000 // 60 seconds
+    };
+  });
 
-  // ACTIONS
+  setDevices(processed);
+};
+
+
+// ⭐ 1) LOAD FAMILIES, MEMBERS, ITEMS
+useEffect(() => {
+  loadFamilies();
+  loadMembers();
+  loadItems();
+}, []);
+
+
+// ⭐ 2) ΜΟΛΙΣ ΦΟΡΤΩΣΟΥΝ ΟΙ ΟΙΚΟΓΕΝΕΙΕΣ → ΦΕΡΝΕΙ ΟΛΑ ΤΑ DEVICES
+useEffect(() => {
+  if (families.length > 0) {
+    loadAllDevices();   // ⭐ ΤΩΡΑ ΦΕΡΝΕΙ ΟΛΑ ΤΑ DEVICES ΑΠΟ ΟΛΕΣ ΤΙΣ ΟΙΚΟΓΕΝΕΙΕΣ
+  }
+}, [families]);
+
+
+// ⭐ 3) LOAD DEVICES WHEN FAMILY CHANGES
+useEffect(() => {
+  console.log("selectedFamily =", selectedFamily);
+
+  if (!selectedFamily) return;
+
+  // Αν είναι ALL → μην κάνεις loadDevices
+  if (selectedFamily === "all") return;
+
+  loadDevices();
+}, [selectedFamily]);
+
+
+// ⭐ FILTER MEMBERS
+const filteredMembers =
+  selectedFamily === "all"
+    ? members
+    : members.filter((m) => m.family_code === selectedFamily);
+
+
+// ⭐ FILTER ITEMS
+const filteredItems =
+  selectedFamily === "all"
+    ? items
+    : items.filter((i) => i.family_code === selectedFamily);
+
+
+// ⭐ FILTER DEVICES (ONLINE ONLY)
+const filteredDevices = devices.filter((d) => d.is_online);
+
+  // ? devices.filter((d) => d.family_code.trim() === selectedFamily.trim())
+  // : devices;
+
+ 
+
+
   const renameFamily = async () => {
     if (!renameOld.trim() || !renameNew.trim()) return;
 
@@ -127,23 +225,37 @@ export default function AdminPage() {
     loadFamilies();
   };
 
-  const deleteFamily = async (code: string) => {
-    if (!window.confirm(`Delete family "${code}"?`)) return;
+  const renameFamilyById = async () => {
+  if (!renameId.trim() || !renameNewCode.trim()) return;
 
-    await fetch("/api/admin/deleteFamily", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ code }),
-    });
+  const res = await fetch("/api/admin/renameFamilyById", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      id: Number(renameId),
+      new_code: renameNewCode.trim(),
+    }),
+  });
 
-    loadFamilies();
-  };
+  const data = await res.json();
 
-  const toggleActive = async (code: string, is_active: boolean) => {
+  if (!data.success) {
+    alert("Rename failed");
+    return;
+  }
+
+  alert("Family renamed!");
+  setRenameId("");
+  setRenameNewCode("");
+  loadFamilies();
+};
+
+
+  const toggleActive = async (family_code: string, is_active: boolean) => {
     await fetch("/api/admin/toggleFamilyActive", {
       method: "POST",
-      headers: { "Content-Type": "applicationapplication/json" },
-      body: JSON.stringify({ code, is_active: !is_active }),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ family_code, is_active: !is_active }),
     });
 
     loadFamilies();
@@ -166,63 +278,34 @@ export default function AdminPage() {
     loadMembers();
   };
 
-  const deleteMember = async (id: number) => {
-    if (!window.confirm("Delete this member?")) return;
-
-    await fetch("/api/admin/deleteMember", {
+  const toggleItem = async (id: number, newState: boolean, family_code: string) => {
+    await fetch("/api/admin/toggleItem", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id }),
-    });
-
-    loadMembers();
-  };
-
-  const toggleItem = async (id: number, is_checked: boolean) => {
-    await fetch("/api/admin/toggleItemChecked", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, is_checked }),
+      body: JSON.stringify({
+        id,
+        is_checked: newState,
+        family_code,
+        user_name: "Admin",
+      }),
     });
 
     loadItems();
   };
 
-  const deleteItem = async (id: number) => {
-    if (!window.confirm("Delete this item?")) return;
-
-    await fetch("/api/admin/deleteItem", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id }),
-    });
-
-    loadItems();
-  };
-
-  const toggleDeviceOnline = async (id: number, is_online: boolean) => {
+  const toggleDeviceOnline = async (id: number, newState: boolean, family_code: string) => {
     await fetch("/api/admin/toggleDeviceOnline", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, is_online }),
+      body: JSON.stringify({
+        id,
+        is_online: newState,
+        family_code,
+      }),
     });
 
     loadDevices();
   };
-
-  const deleteDevice = async (id: number) => {
-    if (!window.confirm("Delete this device?")) return;
-
-    await fetch("/api/admin/deleteDevice", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id }),
-    });
-
-    loadDevices();
-  };
-
-  // LOADING
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center text-xl">
@@ -231,31 +314,71 @@ export default function AdminPage() {
     );
   }
 
+const handleSoftDelete = async () => {
+  console.log("Soft delete triggered");
+  // Μπορείς να το αφήσεις άδειο προς το παρόν
+};
+
+
+const handlePermanentDelete = async () => {
+  console.log("Permanent delete triggered");
+};
+
+
   return (
-    <div className="min-h-screen px-4 py-6 bg-gray-50">
+    <div className={`${darkMode ? "dark" : ""} page min-h-screen px-4 py-6`}>
       <style jsx>{`
+        :root {
+          --card-bg: #ffffff;
+          --card-text: #1f2937;
+          --table-bg: #ffffff;
+          --table-text: #1f2937;
+          --input-bg: #fafafa;
+          --input-text: #1f2937;
+          --button-bg: #7c3aed;
+          --button-text: #ffffff;
+        }
+
+        .dark {
+          --card-bg: #1f1f1f;
+          --card-text: #e5e5e5;
+          --table-bg: #1f1f1f;
+          --table-text: #e5e5e5;
+          --input-bg: #2a2a2a;
+          --input-text: #e5e5e5;
+          --button-bg: #5b21b6;
+          --button-text: #ffffff;
+        }
+
         .card {
-          background: white;
+          background: var(--card-bg);
+          color: var(--card-text);
           padding: 22px;
           border-radius: 18px;
-          box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
           margin-bottom: 24px;
         }
+
         .title {
           font-size: 22px;
           font-weight: 600;
           margin-bottom: 14px;
+          color: var(--card-text);
         }
+
         .input {
           padding: 12px 14px;
           border-radius: 12px;
           border: 1px solid #d1d5db;
           font-size: 15px;
           margin-bottom: 12px;
+          background: var(--input-bg);
+          color: var(--input-text);
         }
+
         .button {
-          background: #7c3aed;
-          color: white;
+          background: var(--button-bg);
+          color: var(--button-text);
           padding: 12px 18px;
           border-radius: 12px;
           border: none;
@@ -263,54 +386,81 @@ export default function AdminPage() {
           cursor: pointer;
           transition: background 0.2s;
         }
+
         .button:hover {
           background: #5b21b6;
         }
+
         .table {
           width: 100%;
           border-collapse: collapse;
           border-radius: 12px;
           overflow: hidden;
+          background: var(--table-bg);
+          color: var(--table-text);
         }
+
         .table th {
           background: #f3f4f6;
           padding: 12px;
           font-weight: 600;
           text-align: left;
+          color: var(--table-text);
         }
+
         .table td {
           padding: 12px;
           border-bottom: 1px solid #e5e7eb;
+          color: var(--table-text);
         }
-      `}</style>
 
-      <div className="max-w-6xl mx-auto space-y-10">
+        .page {
+          background: #f9fafb;
+        }
+      
+      
+       /* ⭐ ADD THIS */
+      .family-select {
+        max-height: 150px;
+        overflow-y: auto;
+     }
 
-        {/* LOGOUT */}
-        <div className="flex justify-end">
-          <button
-            onClick={() => {
-              localStorage.removeItem("admin_token");
-              router.push("/admin/login");
-            }}
-            className="button"
-          >
-            Logout
-          </button>
-        </div>
+     .family-select {
+        height: 40px;
+      }
 
+        `}
+      </style>
+
+      <div className="max-w-3xl mx-auto space-y-10">
+
+          {/* LOGOUT BUTTON */}
+        <button
+          onClick={() => {
+            document.cookie = "admin_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+            router.push("/admin/login");
+          }}
+          className="button bg-red-600 hover:bg-red-700"
+          style={{ marginBottom: "20px" }}
+        >
+          Log out
+        </button>
+
+      
         {/* FAMILY SWITCH */}
         <div className="card">
           <h2 className="title">Select Family</h2>
           <select
             value={selectedFamily}
             onChange={(e) => setSelectedFamily(e.target.value)}
-            className="input w-60"
-          >
-            <option value="">All families</option>
+            className="input w-60 family-select"          >
+
+            <option value="all">All families</option>
+
+            
             {families.map((f) => (
-              <option key={f.id} value={f.code}>
-                {f.name} ({f.code})
+              <option key={f.id} value={f.family_code}>
+                {f.name} ({f.family_code})
               </option>
             ))}
           </select>
@@ -337,6 +487,28 @@ export default function AdminPage() {
             </button>
           </div>
         </div>
+         
+        {/* ⭐⭐⭐ RENAME BY ID — ΒΑΛΕ ΤΟ ΕΔΩ ⭐⭐⭐ */}
+      <div className="card">
+        <h2 className="title">Rename Family (by ID)</h2>
+        <div className="flex gap-3">
+          <input
+            value={renameId}
+            onChange={(e) => setRenameId(e.target.value)}
+            placeholder="Family ID"
+            className="input w-40"
+          />
+          <input
+            value={renameNewCode}
+            onChange={(e) => setRenameNewCode(e.target.value)}
+            placeholder="New code"
+            className="input w-40"
+          />
+          <button onClick={renameFamilyById} className="button">
+            Rename
+          </button>
+        </div>
+      </div>
 
         {/* FAMILIES */}
         <div className="card">
@@ -356,7 +528,7 @@ export default function AdminPage() {
                 <tr key={f.id}>
                   <td>{f.id}</td>
                   <td>{f.name}</td>
-                  <td>{f.code}</td>
+                  <td>{f.family_code}</td>
                   <td>
                     {f.is_active ? (
                       <span className="text-green-600 font-semibold">Active</span>
@@ -366,13 +538,13 @@ export default function AdminPage() {
                   </td>
                   <td className="space-x-2">
                     <button
-                      onClick={() => toggleActive(f.code, f.is_active)}
+                      onClick={() => toggleActive(f.family_code, f.is_active)}
                       className="button"
                     >
                       {f.is_active ? "Disable" : "Enable"}
                     </button>
                     <button
-                      onClick={() => deleteFamily(f.code)}
+                      onClick={() => openDeleteModal("family", f)}
                       className="button bg-red-600 hover:bg-red-700"
                     >
                       Delete
@@ -426,7 +598,7 @@ export default function AdminPage() {
                   <td>{m.name}</td>
                   <td>
                     <button
-                      onClick={() => deleteMember(m.id)}
+                      onClick={() => openDeleteModal("member", m)}
                       className="button bg-red-600 hover:bg-red-700"
                     >
                       Delete
@@ -461,17 +633,15 @@ export default function AdminPage() {
                   <td>{item.family_code}</td>
                   <td>
                     <button
-                      onClick={() => toggleItem(item.id, !item.is_checked)}
-                      className={`button ${
-                        item.is_checked ? "bg-green-600" : "bg-gray-500"
-                      }`}
+                      onClick={() => toggleItem(item.id, !item.is_checked, item.family_code)}
+                      className={`button ${item.is_checked ? "bg-green-600" : "bg-gray-500"}`}
                     >
                       {item.is_checked ? "Checked" : "Not checked"}
                     </button>
                   </td>
                   <td>
                     <button
-                      onClick={() => deleteItem(item.id)}
+                      onClick={() => openDeleteModal("item", item)}
                       className="button bg-red-600 hover:bg-red-700"
                     >
                       Delete
@@ -483,50 +653,80 @@ export default function AdminPage() {
           </table>
         </div>
 
-        {/* DEVICES */}
-        <div className="card">
-          <h2 className="title">Devices (Live)</h2>
-          <table className="table">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Family</th>
-                <th>Name</th>
-                <th>Last Seen</th>
-                <th>Online</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredDevices.map((d) => (
-                <tr key={d.id}>
-                  <td>{d.id}</td>
-                  <td>{d.family_code}</td>
-                  <td>{d.device_name}</td>
-                  <td>{d.last_seen ? new Date(d.last_seen).toLocaleString() : "Never"}</td>
-                  <td>
-                    <button
-                      onClick={() => toggleDeviceOnline(d.id, !d.is_online)}
-                      className={`button ${
-                        d.is_online ? "bg-green-600" : "bg-gray-500"
-                      }`}
-                    >
-                      {d.is_online ? "Online" : "Offline"}
-                    </button>
-                  </td>
-                  <td>
-                    <button
-                      onClick={() => deleteDevice(d.id)}
-                      className="button bg-red-600 hover:bg-red-700"
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+
+{/* DEVICES (LIVE) */}
+<div className="card">
+  <h2 className="title">Devices (Live)</h2>
+
+  {/* ⭐ ONLINE COUNTER */}
+  <div className="mb-4 text-lg font-semibold">
+    🟢 Online devices: {filteredDevices.length} / {devices.length}
+  </div>
+
+  <table className="table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Family</th>
+        <th>Name</th>
+        <th>Last Seen</th>
+        <th>Online</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {filteredDevices.map((d) => (
+
+        <tr
+       key={d.id}
+       className={d.is_online ? "bg-green-50" : "bg-red-50"}
+      >
+          <td>{d.id}</td>
+          <td>{d.family_code}</td>
+          <td>{d.device_name}</td>
+
+          <td>
+            {d.last_seen
+              ? new Date(d.last_seen).toLocaleString()
+              : "Never"}
+          </td>
+
+          <td>
+  <div className="flex items-center gap-2">
+    <span
+      className={`inline-block w-3 h-3 rounded-full ${
+        d.is_online ? "bg-green-500" : "bg-red-500"
+      }`}
+    ></span>
+
+    <button
+      onClick={() =>
+        toggleDeviceOnline(d.id, !d.is_online, d.family_code)
+      }
+      className={`button ${
+        d.is_online ? "bg-green-600" : "bg-gray-500"
+      }`}
+    >
+      {d.is_online ? "Online" : "Offline"}
+    </button>
+  </div>
+</td>
+
+          <td>
+            <button
+              onClick={() => openDeleteModal("device", d)}
+              className="button bg-red-600 hover:bg-red-700"
+            >
+              Delete
+            </button>
+          </td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>
+
 
         {/* FOOTER */}
         <div className="text-center text-gray-500 text-sm mt-10 mb-4">
@@ -537,6 +737,15 @@ export default function AdminPage() {
           Contact: vasilis.nikitaras@gmail.com
         </div>
 
+        {/* SAFETY DELETE MODAL */}
+        <DeleteSafetyModal
+          open={showDeleteModal}
+          onClose={closeDeleteModal}
+          type={deleteType}
+          data={deleteTarget}
+          onSoftDelete={handleSoftDelete}
+          onPermanentDelete={handlePermanentDelete}
+        />
       </div>
     </div>
   );

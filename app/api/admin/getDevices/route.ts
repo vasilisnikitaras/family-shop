@@ -5,20 +5,34 @@ export async function GET(req: Request) {
   try {
     const sql = neon(process.env.DATABASE_URL!);
     const { searchParams } = new URL(req.url);
-
-    // 🔥 ΠΡΟΣΟΧΗ: ΤΩΡΑ ΧΡΗΣΙΜΟΠΟΙΟΥΜΕ familyCode
     const familyCode = searchParams.get("familyCode");
 
-    const devices = await sql`
-      SELECT id, device_name, last_seen, is_online, family_code
-      FROM admin_devices
-      WHERE family_code = ${familyCode}
-      ORDER BY id ASC;
-    `;
+    const devices = familyCode
+      ? await sql`
+          SELECT 
+            id,
+            family_code,
+            device_name,
+            last_seen,
+            is_online
+          FROM devices
+          WHERE family_code = ${familyCode}
+          ORDER BY id DESC;
+        `
+      : await sql`
+          SELECT 
+            id,
+            family_code,
+            device_name,
+            last_seen,
+            is_online
+          FROM devices
+          ORDER BY id DESC;
+        `;
 
-    return NextResponse.json({ devices });
+    return NextResponse.json(devices);
   } catch (error) {
     console.error("Error loading devices:", error);
-    return NextResponse.json({ devices: [] }, { status: 500 });
+    return NextResponse.json({ error: "Failed to load devices" }, { status: 500 });
   }
 }

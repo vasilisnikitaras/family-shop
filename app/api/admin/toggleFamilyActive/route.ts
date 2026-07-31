@@ -1,29 +1,20 @@
-import { sql } from "@/lib/db";
 import { NextResponse } from "next/server";
+import { neon } from "@neondatabase/serverless";
 
-export async function POST(request: Request) {
+export async function POST(req: Request) {
   try {
-    const { family_code, is_active } = await request.json();
-
-    if (!family_code || typeof is_active !== "boolean") {
-      return NextResponse.json(
-        { error: "Missing family_code or is_active" },
-        { status: 400 }
-      );
-    }
+    const sql = neon(process.env.DATABASE_URL!);
+    const { family_code, is_active } = await req.json();
 
     await sql`
-      UPDATE families_v2
+      UPDATE families
       SET is_active = ${is_active}
       WHERE family_code = ${family_code};
     `;
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Error toggling family active state:", error);
-    return NextResponse.json(
-      { error: "Failed to toggle family active state" },
-      { status: 500 }
-    );
+    console.error("Error toggling family active:", error);
+    return NextResponse.json({ error: "Failed to toggle family active" }, { status: 500 });
   }
 }
