@@ -1,12 +1,47 @@
-export async function POST(req: Request) {
-  const { username, password } = await req.json();
+import { NextResponse } from "next/server";
+import { neon } from "@neondatabase/serverless";
 
-  if (username !== "admin" || password !== "admin123") {
-    return Response.json({ success: false, message: "Invalid credentials" });
+interface AdminLoginPayload {
+  username: string;
+  password: string;
+}
+
+export async function POST(req: Request) {
+  const sql = neon(process.env.DATABASE_URL!);
+
+  let data: AdminLoginPayload = { username: "", password: "" };
+
+  try {
+    data = await req.json();
+  } catch {
+    return NextResponse.json({ success: false, message: "Invalid body" });
   }
 
-  return Response.json({
-    success: true,
-    token: "admin_session_token"
+  const { username, password } = data;
+
+  if (!username || !password) {
+    return NextResponse.json({ success: false, message: "Missing fields" });
+  }
+
+  const admin = await sql`
+    SELECT * FROM admins
+    WHERE username = ${username}
+      AND password = ${password}
+    LIMIT 1;
+  `;
+
+  if (admin.length === 0) {
+    return NextResponse.json({ success: false, message: "Wrong username or password" });
+  }
+
+  const res = NextResponse.json({ success: true });
+
+  res.cookies.set("admin_token", "valid", {
+    httpOnly: true,
+    secure: true,
+    path: "/",
+    maxAge: 60 * 60 * 24,
   });
+
+  return res;
 }
