@@ -6,11 +6,11 @@ const nextConfig = {
     },
   },
 
-  // ⭐ ΑΥΤΟ ΕΔΩ ΕΙΝΑΙ ΤΟ ΜΑΓΙΚΟ
-  devServer: {
-    host: "0.0.0.0",
-    port: 3002,
-  },
+  // ❌ devServer πρέπει να φύγει — δεν υποστηρίζεται στο Next.js 16
+  // devServer: {
+  //   host: "0.0.0.0",
+  //   port: 3002,
+  // },
 
   turbopack: {},
 
