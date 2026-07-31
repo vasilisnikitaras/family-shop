@@ -146,19 +146,19 @@ const toggleActive = async (familyCode: string, current: boolean) => {
 };
 
 const addMember = async () => {
-  if (!newMemberName.trim() || !newMemberFamily.trim()) return;
+if (!newMemberName.trim() || !newMemberFamilyCode.trim()) return;
 
   await fetch("/api/admin/addMember", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       name: newMemberName.trim(),
-      family_code: newMemberFamily.trim(),
+      family_code: newMemberFamilyCode.trim(),
     }),
   });
 
   setNewMemberName("");
-  setNewMemberFamily("");
+  setNewMemberFamilyCode("");
   loadMembers();
 };
 
@@ -242,7 +242,7 @@ const addMember = async () => {
   const filteredDevices = devices.filter((d) => d.is_online);
   return (
     <div className={`${darkMode ? "dark" : ""} page min-h-screen px-4 py-6`}>
-        
+
       <style jsx>{`
         :root {
           --card-bg: #ffffff;
