@@ -25,9 +25,8 @@ export default function AdminLogin() {
       return;
     }
 
-    document.cookie = `admin_token=${data.token}; path=/;`;
+    // Το backend βάζει το cookie μόνο του
     router.push("/admin");
-
   };
 
   return (
@@ -55,6 +54,7 @@ export default function AdminLogin() {
           border: 1px solid #d1d5db;
           margin-bottom: 14px;
           font-size: 15px;
+          background: white;
         }
         .button {
           width: 100%;
@@ -74,6 +74,17 @@ export default function AdminLogin() {
           color: red;
           margin-bottom: 10px;
           text-align: center;
+        }
+
+        /* ⭐ Autofill fix για iPhone / Chrome / Safari */
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover,
+        input:-webkit-autofill:focus,
+        input:-webkit-autofill:active {
+          -webkit-box-shadow: 0 0 0px 1000px white inset !important;
+          box-shadow: 0 0 0px 1000px white inset !important;
+          -webkit-text-fill-color: #000 !important;
+          caret-color: #000 !important;
         }
       `}</style>
 

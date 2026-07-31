@@ -37,12 +37,19 @@ type Device = {
 export default function AdminPage() {
   const router = useRouter();
 
+  // ⭐ LOGOUT — ΣΩΣΤΟ ΣΗΜΕΙΟ
+  const logout = async () => {
+    await fetch("/api/admin/logout", { method: "POST" });
+    window.location.href = "/admin/login";
+  };
+
   const [darkMode, setDarkMode] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("admin_token");
     if (!token) router.push("/admin/login");
   }, []);
+
 
   const [families, setFamilies] = useState<Family[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
@@ -206,9 +213,6 @@ const filteredDevices = devices.filter((d) => d.is_online);
 
   // ? devices.filter((d) => d.family_code.trim() === selectedFamily.trim())
   // : devices;
-
- 
-
 
   const renameFamily = async () => {
     if (!renameOld.trim() || !renameNew.trim()) return;
