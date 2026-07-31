@@ -62,8 +62,9 @@ export default function AdminClientPage() {
   const [newMemberFamilyCode, setNewMemberFamilyCode] = useState("");
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [deleteType, setDeleteType] = useState("");
-  const [deleteTarget, setDeleteTarget] = useState<any>(null);
+  const [deleteType, setDeleteType] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<any | null>(null);
+
 
   const openDeleteModal = (type: string, data: any) => {
     setDeleteType(type);
