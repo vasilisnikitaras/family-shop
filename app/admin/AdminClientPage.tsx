@@ -96,6 +96,24 @@ export default function AdminClientPage() {
     setItems(data);
   };
 
+
+  const renameFamily = async () => {
+  if (!renameOld.trim() || !renameNew.trim()) return;
+
+  await fetch("/api/admin/renameFamily", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      old_code: renameOld.trim(),
+      new_code: renameNew.trim(),
+    }),
+  });
+
+  setRenameOld("");
+  setRenameNew("");
+  loadFamilies();
+};
+
   const loadDevices = async () => {
     const res = await fetch(`/api/admin/getDevices?familyCode=${selectedFamily}`);
     const data = await res.json();
