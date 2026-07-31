@@ -96,85 +96,6 @@ export default function AdminClientPage() {
     setItems(data);
   };
 
-
-  const renameFamily = async () => {
-  if (!renameOld.trim() || !renameNew.trim()) return;
-
-  await fetch("/api/admin/renameFamily", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      old_code: renameOld.trim(),
-      new_code: renameNew.trim(),
-    }),
-  });
-
-  setRenameOld("");
-  setRenameNew("");
-  loadFamilies();
-};
-
-const renameFamilyById = async () => {
-  if (!renameId.trim() || !renameNewCode.trim()) return;
-
-  await fetch("/api/admin/renameFamilyById", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      id: Number(renameId.trim()),
-      new_code: renameNewCode.trim(),
-    }),
-  });
-
-  setRenameId("");
-  setRenameNewCode("");
-  loadFamilies();
-};
-
-
-const toggleActive = async (familyCode: string, current: boolean) => {
-  await fetch("/api/admin/toggleActive", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      family_code: familyCode,
-      is_active: !current,
-    }),
-  });
-
-  loadFamilies();
-};
-
-const addMember = async () => {
-if (!newMemberName.trim() || !newMemberFamilyCode.trim()) return;
-
-  await fetch("/api/admin/addMember", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      name: newMemberName.trim(),
-      family_code: newMemberFamilyCode.trim(),
-    }),
-  });
-
-  setNewMemberName("");
-  setNewMemberFamilyCode("");
-  loadMembers();
-};
-
-const toggleItem = async (id: number, checked: boolean, familyCode: string) => {
-  await fetch("/api/admin/toggleItem", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      id,
-      is_checked: checked,
-      family_code: familyCode,
-    }),
-  });
-
-  loadItems();
-
 const renameFamily = async () => {
   if (!renameOld.trim() || !renameNew.trim()) return;
 
@@ -191,7 +112,6 @@ const renameFamily = async () => {
   setRenameNew("");
   loadFamilies();
 };
-
 
 const renameFamilyById = async () => {
   if (!renameId.trim() || !renameNewCode.trim()) return;
@@ -254,7 +174,11 @@ const toggleItem = async (id: number, checked: boolean, familyCode: string) => {
   loadItems();
 };
 
-const toggleDeviceOnline = async (id: number, online: boolean, familyCode: string) => {
+const toggleDeviceOnline = async (
+  id: number,
+  online: boolean,
+  familyCode: string
+) => {
   await fetch("/api/admin/toggleDeviceOnline", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -266,6 +190,27 @@ const toggleDeviceOnline = async (id: number, online: boolean, familyCode: strin
   });
 
   loadAllDevices();
+};
+
+const handleSoftDelete = async () => {
+  if (!deleteType || !deleteTarget) return;
+
+  await fetch("/api/admin/softDelete", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      type: deleteType,
+      id: deleteTarget.id,
+    }),
+  });
+
+  loadFamilies();
+  loadMembers();
+  loadItems();
+  loadAllDevices();
+
+  setDeleteType(null);
+  setDeleteTarget(null);
 };
 
 const handlePermanentDelete = async () => {
@@ -280,7 +225,6 @@ const handlePermanentDelete = async () => {
     }),
   });
 
-  // refresh lists
   loadFamilies();
   loadMembers();
   loadItems();
