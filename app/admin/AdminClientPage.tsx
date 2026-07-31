@@ -162,6 +162,20 @@ if (!newMemberName.trim() || !newMemberFamilyCode.trim()) return;
   loadMembers();
 };
 
+const toggleItem = async (id: number, checked: boolean, familyCode: string) => {
+  await fetch("/api/admin/toggleItem", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      id,
+      is_checked: checked,
+      family_code: familyCode,
+    }),
+  });
+
+  loadItems();
+
+  
   const loadDevices = async () => {
     const res = await fetch(`/api/admin/getDevices?familyCode=${selectedFamily}`);
     const data = await res.json();
