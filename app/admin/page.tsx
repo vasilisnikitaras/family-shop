@@ -1,6 +1,7 @@
-import { cookies } from "next/headers";
-import { redirect, useRouter } from "next/navigation";
+"use client";
+
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import DeleteSafetyModal from "./DeleteSafetyModal";
 
 // TYPES
@@ -34,18 +35,21 @@ type Device = {
 };
 
 export default function AdminPage() {
-  // ⭐ SERVER AUTH CHECK
-  const cookieStore = cookies();
-  const token = cookieStore.get("admin_token");
-
-  if (!token || token.value !== "valid") {
-    redirect("/admin/login");
-  }
-
   const router = useRouter();
 
-  // STATE
+  // ⭐ LOGOUT — ΣΩΣΤΟ ΣΗΜΕΙΟ
+  const logout = async () => {
+    await fetch("/api/admin/logout", { method: "POST" });
+    window.location.href = "/admin/login";
+  };
+
   const [darkMode, setDarkMode] = useState(false);
+
+  useEffect(() => {
+    const token = localStorage.getItem("admin_token");
+    if (!token) router.push("/admin/login");
+  }, []);
+
 
   const [families, setFamilies] = useState<Family[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
@@ -58,8 +62,10 @@ export default function AdminPage() {
   const [renameOld, setRenameOld] = useState("");
   const [renameNew, setRenameNew] = useState("");
 
-  const [renameId, setRenameId] = useState("");
-  const [renameNewCode, setRenameNewCode] = useState("");
+ 
+ const [renameId, setRenameId] = useState("");
+ const [renameNewCode, setRenameNewCode] = useState("");
+
 
   const [newMemberName, setNewMemberName] = useState("");
   const [newMemberFamilyCode, setNewMemberFamilyCode] = useState("");
@@ -68,7 +74,6 @@ export default function AdminPage() {
   const [deleteType, setDeleteType] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<any>(null);
 
-  // MODAL
   const openDeleteModal = (type: string, data: any) => {
     setDeleteType(type);
     setDeleteTarget(data);
@@ -80,14 +85,6 @@ export default function AdminPage() {
     setDeleteType("");
     setDeleteTarget(null);
   };
-
-  // LOGOUT
-  const logout = async () => {
-    await fetch("/api/admin/logout", { method: "POST" });
-    window.location.href = "/admin/login";
-  };
-
-  // LOADERS
   const loadFamilies = async () => {
     const res = await fetch("/api/admin/getFamilies");
     const data = await res.json();
@@ -108,95 +105,115 @@ export default function AdminPage() {
   };
 
   const loadDevices = async () => {
-    console.log("FETCH → /api/admin/getDevices?familyCode=" + selectedFamily);
+  console.log("FETCH → /api/admin/getDevices?familyCode=" + selectedFamily);
 
-    const res = await fetch(`/api/admin/getDevices?familyCode=${selectedFamily}`);
+  const res = await fetch(`/api/admin/getDevices?familyCode=${selectedFamily}`);
+  const data = await res.json();
+
+  console.log("DEVICES RESPONSE:", data);
+
+  // ⭐ AUTO-OFFLINE LOGIC
+  const now = Date.now();
+
+  // 👉 ΔΙΟΡΘΩΣΗ ΤΥΠΟΥ ΕΔΩ
+ const processed = data.map((d: Device) => {
+  const last = new Date(d.last_seen || 0).getTime();
+  const diff = now - last;
+
+  return {
+    ...d,
+    is_online: diff < 60000 // 60 seconds
+  };
+});
+
+  setDevices(processed);
+};
+
+
+
+// ⭐ LOAD ALL DEVICES FROM ALL FAMILIES
+const loadAllDevices = async () => {
+  const all: any[] = [];
+
+  for (const fam of families) {
+    const res = await fetch(`/api/admin/getDevices?familyCode=${fam.family_code}`);
     const data = await res.json();
 
-    console.log("DEVICES RESPONSE:", data);
+    if (!data) continue;
 
-    const now = Date.now();
-
-    const processed = data.map((d: Device) => {
-      const last = new Date(d.last_seen || 0).getTime();
-      const diff = now - last;
-
-      return {
-        ...d,
-        is_online: diff < 60000, // 60 seconds
-      };
-    });
-
-    setDevices(processed);
-  };
-
-  const loadAllDevices = async () => {
-    const all: any[] = [];
-
-    for (const fam of families) {
-      const res = await fetch(`/api/admin/getDevices?familyCode=${fam.family_code}`);
-      const data = await res.json();
-
-      if (!data) continue;
-
-      if (Array.isArray(data)) {
-        all.push(...data);
-      } else if (Array.isArray(data.devices)) {
-        all.push(...data.devices);
-      }
+    if (Array.isArray(data)) {
+      all.push(...data);
+    } else if (Array.isArray(data.devices)) {
+      all.push(...data.devices);
     }
+  }
 
-    const now = Date.now();
+  // ⭐ AUTO-OFFLINE LOGIC
+  const now = Date.now();
 
-    const processed = all.map((d: Device) => {
-      const last = new Date(d.last_seen || 0).getTime();
-      const diff = now - last;
+  const processed = all.map(d => {
+    const last = new Date(d.last_seen).getTime();
+    const diff = now - last;
 
-      return {
-        ...d,
-        is_online: diff < 60000, // 60 seconds
-      };
-    });
+    return {
+      ...d,
+      is_online: diff < 60000 // 60 seconds
+    };
+  });
 
-    setDevices(processed);
-  };
+  setDevices(processed);
+};
 
-  // EFFECTS
-  useEffect(() => {
-    loadFamilies();
-    loadMembers();
-    loadItems();
-  }, []);
 
-  useEffect(() => {
-    if (families.length > 0) {
-      loadAllDevices();
-    }
-  }, [families]);
+// ⭐ 1) LOAD FAMILIES, MEMBERS, ITEMS
+useEffect(() => {
+  loadFamilies();
+  loadMembers();
+  loadItems();
+}, []);
 
-  useEffect(() => {
-    console.log("selectedFamily =", selectedFamily);
 
-    if (!selectedFamily) return;
-    if (selectedFamily === "all") return;
+// ⭐ 2) ΜΟΛΙΣ ΦΟΡΤΩΣΟΥΝ ΟΙ ΟΙΚΟΓΕΝΕΙΕΣ → ΦΕΡΝΕΙ ΟΛΑ ΤΑ DEVICES
+useEffect(() => {
+  if (families.length > 0) {
+    loadAllDevices();   // ⭐ ΤΩΡΑ ΦΕΡΝΕΙ ΟΛΑ ΤΑ DEVICES ΑΠΟ ΟΛΕΣ ΤΙΣ ΟΙΚΟΓΕΝΕΙΕΣ
+  }
+}, [families]);
 
-    loadDevices();
-  }, [selectedFamily]);
 
-  // FILTERS
-  const filteredMembers =
-    selectedFamily === "all"
-      ? members
-      : members.filter((m) => m.family_code === selectedFamily);
+// ⭐ 3) LOAD DEVICES WHEN FAMILY CHANGES
+useEffect(() => {
+  console.log("selectedFamily =", selectedFamily);
 
-  const filteredItems =
-    selectedFamily === "all"
-      ? items
-      : items.filter((i) => i.family_code === selectedFamily);
+  if (!selectedFamily) return;
 
-  const filteredDevices = devices.filter((d) => d.is_online);
+  // Αν είναι ALL → μην κάνεις loadDevices
+  if (selectedFamily === "all") return;
 
-  // ACTIONS
+  loadDevices();
+}, [selectedFamily]);
+
+
+// ⭐ FILTER MEMBERS
+const filteredMembers =
+  selectedFamily === "all"
+    ? members
+    : members.filter((m) => m.family_code === selectedFamily);
+
+
+// ⭐ FILTER ITEMS
+const filteredItems =
+  selectedFamily === "all"
+    ? items
+    : items.filter((i) => i.family_code === selectedFamily);
+
+
+// ⭐ FILTER DEVICES (ONLINE ONLY)
+const filteredDevices = devices.filter((d) => d.is_online);
+
+  // ? devices.filter((d) => d.family_code.trim() === selectedFamily.trim())
+  // : devices;
+
   const renameFamily = async () => {
     if (!renameOld.trim() || !renameNew.trim()) return;
 
@@ -215,29 +232,30 @@ export default function AdminPage() {
   };
 
   const renameFamilyById = async () => {
-    if (!renameId.trim() || !renameNewCode.trim()) return;
+  if (!renameId.trim() || !renameNewCode.trim()) return;
 
-    const res = await fetch("/api/admin/renameFamilyById", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        id: Number(renameId),
-        new_code: renameNewCode.trim(),
-      }),
-    });
+  const res = await fetch("/api/admin/renameFamilyById", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      id: Number(renameId),
+      new_code: renameNewCode.trim(),
+    }),
+  });
 
-    const data = await res.json();
+  const data = await res.json();
 
-    if (!data.success) {
-      alert("Rename failed");
-      return;
-    }
+  if (!data.success) {
+    alert("Rename failed");
+    return;
+  }
 
-    alert("Family renamed!");
-    setRenameId("");
-    setRenameNewCode("");
-    loadFamilies();
-  };
+  alert("Family renamed!");
+  setRenameId("");
+  setRenameNewCode("");
+  loadFamilies();
+};
+
 
   const toggleActive = async (family_code: string, is_active: boolean) => {
     await fetch("/api/admin/toggleFamilyActive", {
@@ -294,16 +312,6 @@ export default function AdminPage() {
 
     loadDevices();
   };
-
-  const handleSoftDelete = async () => {
-    console.log("Soft delete triggered");
-  };
-
-  const handlePermanentDelete = async () => {
-    console.log("Permanent delete triggered");
-  };
-
-  // LOADING
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center text-xl">
@@ -312,7 +320,17 @@ export default function AdminPage() {
     );
   }
 
-  // UI
+const handleSoftDelete = async () => {
+  console.log("Soft delete triggered");
+  // Μπορείς να το αφήσεις άδειο προς το παρόν
+};
+
+
+const handlePermanentDelete = async () => {
+  console.log("Permanent delete triggered");
+};
+
+
   return (
     <div className={`${darkMode ? "dark" : ""} page min-h-screen px-4 py-6`}>
       <style jsx>{`
@@ -405,36 +423,47 @@ export default function AdminPage() {
         .page {
           background: #f9fafb;
         }
+      
+      
+       /* ⭐ ADD THIS */
+      .family-select {
+        max-height: 150px;
+        overflow-y: auto;
+     }
 
-        .family-select {
-          max-height: 150px;
-          overflow-y: auto;
-        }
+     .family-select {
+        height: 40px;
+      }
 
-        .family-select {
-          height: 40px;
-        }
-      `}</style>
+        `}
+      </style>
 
       <div className="max-w-3xl mx-auto space-y-10">
-        {/* LOGOUT BUTTON */}
+
+          {/* LOGOUT BUTTON */}
         <button
-          onClick={logout}
+          onClick={() => {
+            document.cookie = "admin_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+            router.push("/admin/login");
+          }}
           className="button bg-red-600 hover:bg-red-700"
           style={{ marginBottom: "20px" }}
         >
           Log out
         </button>
 
+      
         {/* FAMILY SWITCH */}
         <div className="card">
           <h2 className="title">Select Family</h2>
           <select
             value={selectedFamily}
             onChange={(e) => setSelectedFamily(e.target.value)}
-            className="input w-60 family-select"
-          >
+            className="input w-60 family-select"          >
+
             <option value="all">All families</option>
+
+            
             {families.map((f) => (
               <option key={f.id} value={f.family_code}>
                 {f.name} ({f.family_code})
@@ -464,28 +493,28 @@ export default function AdminPage() {
             </button>
           </div>
         </div>
-
-        {/* RENAME BY ID */}
-        <div className="card">
-          <h2 className="title">Rename Family (by ID)</h2>
-          <div className="flex gap-3">
-            <input
-              value={renameId}
-              onChange={(e) => setRenameId(e.target.value)}
-              placeholder="Family ID"
-              className="input w-40"
-            />
-            <input
-              value={renameNewCode}
-              onChange={(e) => setRenameNewCode(e.target.value)}
-              placeholder="New code"
-              className="input w-40"
-            />
-            <button onClick={renameFamilyById} className="button">
-              Rename
-            </button>
-          </div>
+         
+        {/* ⭐⭐⭐ RENAME BY ID — ΒΑΛΕ ΤΟ ΕΔΩ ⭐⭐⭐ */}
+      <div className="card">
+        <h2 className="title">Rename Family (by ID)</h2>
+        <div className="flex gap-3">
+          <input
+            value={renameId}
+            onChange={(e) => setRenameId(e.target.value)}
+            placeholder="Family ID"
+            className="input w-40"
+          />
+          <input
+            value={renameNewCode}
+            onChange={(e) => setRenameNewCode(e.target.value)}
+            placeholder="New code"
+            className="input w-40"
+          />
+          <button onClick={renameFamilyById} className="button">
+            Rename
+          </button>
         </div>
+      </div>
 
         {/* FAMILIES */}
         <div className="card">
@@ -549,10 +578,7 @@ export default function AdminPage() {
               placeholder="Family Code"
               className="input w-32"
             />
-            <button
-              onClick={addMember}
-              className="button bg-green-600 hover:bg-green-700"
-            >
+            <button onClick={addMember} className="button bg-green-600 hover:bg-green-700">
               Add
             </button>
           </div>
@@ -613,12 +639,8 @@ export default function AdminPage() {
                   <td>{item.family_code}</td>
                   <td>
                     <button
-                      onClick={() =>
-                        toggleItem(item.id, !item.is_checked, item.family_code)
-                      }
-                      className={`button ${
-                        item.is_checked ? "bg-green-600" : "bg-gray-500"
-                      }`}
+                      onClick={() => toggleItem(item.id, !item.is_checked, item.family_code)}
+                      className={`button ${item.is_checked ? "bg-green-600" : "bg-gray-500"}`}
                     >
                       {item.is_checked ? "Checked" : "Not checked"}
                     </button>
@@ -637,71 +659,80 @@ export default function AdminPage() {
           </table>
         </div>
 
-        {/* DEVICES (LIVE) */}
-        <div className="card">
-          <h2 className="title">Devices (Live)</h2>
 
-          <div className="mb-4 text-lg font-semibold">
-            🟢 Online devices: {filteredDevices.length} / {devices.length}
-          </div>
+{/* DEVICES (LIVE) */}
+<div className="card">
+  <h2 className="title">Devices (Live)</h2>
 
-          <table className="table">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Family</th>
-                <th>Name</th>
-                <th>Last Seen</th>
-                <th>Online</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
+  {/* ⭐ ONLINE COUNTER */}
+  <div className="mb-4 text-lg font-semibold">
+    🟢 Online devices: {filteredDevices.length} / {devices.length}
+  </div>
 
-            <tbody>
-              {filteredDevices.map((d) => (
-                <tr
-                  key={d.id}
-                  className={d.is_online ? "bg-green-50" : "bg-red-50"}
-                >
-                  <td>{d.id}</td>
-                  <td>{d.family_code}</td>
-                  <td>{d.device_name}</td>
-                  <td>
-                    {d.last_seen ? new Date(d.last_seen).toLocaleString() : "Never"}
-                  </td>
-                  <td>
-                    <div className="flex items-center gap-2">
-                      <span
-                        className={`inline-block w-3 h-3 rounded-full ${
-                          d.is_online ? "bg-green-500" : "bg-red-500"
-                        }`}
-                      ></span>
+  <table className="table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Family</th>
+        <th>Name</th>
+        <th>Last Seen</th>
+        <th>Online</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
 
-                      <button
-                        onClick={() =>
-                          toggleDeviceOnline(d.id, !d.is_online, d.family_code)
-                        }
-                        className={`button ${
-                          d.is_online ? "bg-green-600" : "bg-gray-500"
-                        }`}
-                      >
-                        {d.is_online ? "Online" : "Offline"}
-                      </button>
-                    </div>
-                  </td>
-                  <td>
-                    <button
-                      onClick={() => openDeleteModal("device", d)}
-                      className="button bg-red-600 hover:bg-red-700"
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+    <tbody>
+      {filteredDevices.map((d) => (
+
+        <tr
+       key={d.id}
+       className={d.is_online ? "bg-green-50" : "bg-red-50"}
+      >
+          <td>{d.id}</td>
+          <td>{d.family_code}</td>
+          <td>{d.device_name}</td>
+
+          <td>
+            {d.last_seen
+              ? new Date(d.last_seen).toLocaleString()
+              : "Never"}
+          </td>
+
+          <td>
+  <div className="flex items-center gap-2">
+    <span
+      className={`inline-block w-3 h-3 rounded-full ${
+        d.is_online ? "bg-green-500" : "bg-red-500"
+      }`}
+    ></span>
+
+    <button
+      onClick={() =>
+        toggleDeviceOnline(d.id, !d.is_online, d.family_code)
+      }
+      className={`button ${
+        d.is_online ? "bg-green-600" : "bg-gray-500"
+      }`}
+    >
+      {d.is_online ? "Online" : "Offline"}
+    </button>
+  </div>
+</td>
+
+          <td>
+            <button
+              onClick={() => openDeleteModal("device", d)}
+              className="button bg-red-600 hover:bg-red-700"
+            >
+              Delete
+            </button>
+          </td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>
+
 
         {/* FOOTER */}
         <div className="text-center text-gray-500 text-sm mt-10 mb-4">
