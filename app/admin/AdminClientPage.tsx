@@ -312,7 +312,9 @@ const handlePermanentDelete = async () => {
       : items.filter((i) => i.family_code === selectedFamily);
 
   const filteredDevices = devices.filter((d) => d.is_online);
+
   return (
+
     <div className={`${darkMode ? "dark" : ""} page min-h-screen px-4 py-6`}>
 
       <style jsx>{`
@@ -701,7 +703,7 @@ const handlePermanentDelete = async () => {
           </table>
         </div>
 
-        {/* FOOTER */}
+                {/* FOOTER */}
         <div className="text-center text-gray-500 text-sm mt-10 mb-4">
           © 2026 VNF Software — Created by Vasilis Fanes Nikitaras. All Rights Reserved.
           <br />
@@ -723,5 +725,6 @@ const handlePermanentDelete = async () => {
     </div>
   );
 }
-}
+
+export default AdminClientPage;
 
