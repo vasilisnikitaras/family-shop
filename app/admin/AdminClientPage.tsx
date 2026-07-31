@@ -268,6 +268,28 @@ const toggleDeviceOnline = async (id: number, online: boolean, familyCode: strin
   loadAllDevices();
 };
 
+const handlePermanentDelete = async () => {
+  if (!deleteType || !deleteTarget) return;
+
+  await fetch("/api/admin/delete", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      type: deleteType,
+      id: deleteTarget.id,
+    }),
+  });
+
+  // refresh lists
+  loadFamilies();
+  loadMembers();
+  loadItems();
+  loadAllDevices();
+
+  setDeleteType(null);
+  setDeleteTarget(null);
+};
+
   const loadDevices = async () => {
     const res = await fetch(`/api/admin/getDevices?familyCode=${selectedFamily}`);
     const data = await res.json();
