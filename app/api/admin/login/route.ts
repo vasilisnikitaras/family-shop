@@ -11,7 +11,7 @@ export async function POST(req: Request) {
 
   let data: AdminLoginPayload = { username: "", password: "" };
 
-  // ⭐ FIX για Vercel — req.json πολλές φορές αποτυγχάνει
+  // ⭐ FIX για Vercel — req.json() αποτυγχάνει
   try {
     const raw = await req.text();
     data = JSON.parse(raw);
@@ -25,7 +25,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ success: false, message: "Missing fields" });
   }
 
-  // ⭐ Plain text login (όπως έχεις στη DB)
   const admin = await sql`
     SELECT * FROM admins
     WHERE username = ${username}
@@ -37,7 +36,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ success: false, message: "Wrong username or password" });
   }
 
-  // ⭐ Set cookie από backend
   const res = NextResponse.json({ success: true });
 
   res.cookies.set("admin_token", "valid", {
