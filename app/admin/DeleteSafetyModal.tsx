@@ -1,5 +1,14 @@
 "use client";
 
+interface DeleteSafetyModalProps {
+  open: boolean;
+  onClose: () => void;
+  type: string;
+  data: any;
+  onSoftDelete: (type: string, data: any) => void;
+  onPermanentDelete: (type: string, data: any) => void;
+}
+
 export default function DeleteSafetyModal({
   open,
   onClose,
@@ -7,7 +16,7 @@ export default function DeleteSafetyModal({
   data,
   onSoftDelete,
   onPermanentDelete
-}) {
+}: DeleteSafetyModalProps) {
   if (!open || !data) return null;
 
   return (
