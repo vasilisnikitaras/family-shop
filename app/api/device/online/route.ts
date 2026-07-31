@@ -1,14 +1,20 @@
 import { NextResponse } from "next/server";
 import { neon } from "@neondatabase/serverless";
 
+interface OnlinePayload {
+  family_code: string;
+  device_name: string;
+}
+
 export async function POST(req: Request) {
   const sql = neon(process.env.DATABASE_URL!);
 
-  let data = {};
+  let data: OnlinePayload = { family_code: "", device_name: "" };
+
   try {
     data = await req.json();
   } catch {
-    data = {};
+    data = { family_code: "", device_name: "" };
   }
 
   const family_code = data.family_code || "";
