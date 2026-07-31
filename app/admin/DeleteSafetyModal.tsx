@@ -3,10 +3,10 @@
 interface DeleteSafetyModalProps {
   open: boolean;
   onClose: () => void;
-  type: string;
-  data: any;
-  onSoftDelete: (type: string, data: any) => void;
-  onPermanentDelete: (type: string, data: any) => void;
+  type: string | null;
+  data: any | null;
+  onSoftDelete: (type: string | null, data: any | null) => void;
+  onPermanentDelete: (type: string | null, data: any | null) => void;
 }
 
 export default function DeleteSafetyModal({
