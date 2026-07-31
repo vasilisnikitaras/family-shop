@@ -175,6 +175,29 @@ const toggleItem = async (id: number, checked: boolean, familyCode: string) => {
 
   loadItems();
 
+const renameFamily = async () => { ... };
+
+const renameFamilyById = async () => { ... };
+
+const toggleActive = async () => { ... };
+
+const addMember = async () => { ... };
+
+const toggleItem = async () => { ... };
+
+const toggleDeviceOnline = async (id: number, online: boolean, familyCode: string) => {
+  await fetch("/api/admin/toggleDeviceOnline", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      id,
+      is_online: online,
+      family_code: familyCode,
+    }),
+  });
+
+  loadAllDevices();
+};
 
   const loadDevices = async () => {
     const res = await fetch(`/api/admin/getDevices?familyCode=${selectedFamily}`);
