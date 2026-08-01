@@ -52,26 +52,28 @@ useEffect(() => {
   if (!familyCode) return;
 
   // ⭐ ΟΤΑΝ ΑΝΟΙΓΕΙ ΤΟ APP → ONLINE
-  fetch("/api/device/online", {
+fetch("/api/device/online", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    family_code: familyCode,
+    device_name: localStorage.getItem("device_name") || "FamilyShop App"
+  })
+});
+
+
+  // ⭐ ΟΤΑΝ ΚΛΕΙΝΕΙ ΤΟ APP → OFFLINE
+const handleExit = () => {
+  fetch("/api/device/offline", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       family_code: familyCode,
-      device_name: "FamilyShop App"
+      device_name: localStorage.getItem("device_name") || "FamilyShop App"
     })
   });
+};
 
-  // ⭐ ΟΤΑΝ ΚΛΕΙΝΕΙ ΤΟ APP → OFFLINE
-  const handleExit = () => {
-    fetch("/api/device/offline", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        family_code: familyCode,
-        device_name: "FamilyShop App"
-      })
-    });
-  };
 
   window.addEventListener("beforeunload", handleExit);
   return () => window.removeEventListener("beforeunload", handleExit);
@@ -123,6 +125,9 @@ useEffect(() => {
     setFamilyCode(loginCode);
     setFamilyPassword(loginPassword);
     setUserName(loginUserName);
+
+    localStorage.setItem("device_name", loginUserName || "FamilyShop App");
+
 
     // loadItems();
     // loadStores();
